@@ -16,7 +16,7 @@ class Coordinator:
         decoded_command = self.decoder.decode(frame)
         if self.controller == None:
             return
-        self.controller.send_command(decoded_command)
+        self.controller.send_command(float(decoded_command))
 
     def set_decoder(self, new_decoder):
         self.decoder = new_decoder
@@ -30,3 +30,7 @@ class Coordinator:
         if (self.controller != None):
             self.controller.close()
         self.controller = new_controller
+
+    def close(self):
+        self.controller.close()
+        self.imaging.close()

@@ -10,7 +10,7 @@ class ImagingLink:
     """
 
     def __init__(self, image_size):
-        assert(len(image_size) == 2, "Image size should be an (x, y) tuple")
+        assert(len(image_size) == 2)
         # Todo(charlie): figure out PrairieView actually does with multiple frame counts.
         frame_count = 1
         bytes_per_pixel = 2  # 16 bit integers
@@ -27,7 +27,7 @@ class ImagingLink:
         # In addition to converting this to a float (so the processing pipeline
         # isn't constrained by the uint type), this is also a copy -- which means 
         # that the decoder can ingest it without worrying about concurrent access.
-        return np.ndarray.astype(np.float64)
+        return self.shared_array.astype(np.float64)
 
     def get_sharedmem_addr(self):
         return hex(id(self.shared_array))

@@ -12,7 +12,10 @@ class ControllerLink:
         self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Make sure Nagle's algorithm is disabled so that we send packets ASAP
         self.tcp_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        self.tcp_socket.setblocking(False)
+        # Todo(charlie): either make this nonblocking or move it to another thread
+        self.tcp_socket.setblocking(True)
+        self.tcp_socket.settimeout(1.0)
+        # This should be a separate method so we can error handle
         self.tcp_socket.connect((host_ip, host_port))
 
     def send_command(self, command):
@@ -20,13 +23,12 @@ class ControllerLink:
         assert(type(command) == float)
         payload = struct.pack('>d', command)
         # Todo(charlie): handle disconnections?
-        # Todo(charlie): test this is nonblocking
         try:
-            self.tcp_socket.sendall(payload, socket.MSG_DONTWAIT)
+            # Note(charlie): socket.MSG_DONTWAIT doesn't exist on windows
+            self.tcp_socket.sendall(payload)
         except socket.error as err:
             # Todo(charlie): really need a logger here
-            print(f"Failure in the socket {err}")
+            assert(False)
 
     def close(self):
-        self.tcp_socket.shutdown()
         self.tcp_socket.close()
