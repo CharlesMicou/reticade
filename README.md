@@ -117,5 +117,40 @@ my_harness.load_decoder("path/to/decoder.reticade")
 
 Once reticade you're happy that reticade is correctly reading from the microscope, sending data to LabView, and has the right decoder loaded, you can start it running.
 ```python3
-reticade.run(stop_after_seconds=300)
+my_harness.run(stop_after_seconds=300)
 ```
+Setting the `stop_after_seconds` parameter will gracefully stop reticade after that duration.
+
+### Closing a harness
+
+When you're done with a harness, you should close it in order to:
+* Release the shared memory allocated for PrairieView's use
+* Release resources associated with the harness
+You can do this with:
+```python3
+my_harness.close()
+```
+
+## Training decoder
+
+A decoder can be trained on another computer and then shared with the computer running the real-time decoding. To train a decoder with the default settings, run the following from your virtual environment (_not_ your Python shell):
+
+```
+python3 -m reticade.decoders.train_default_decoder "<path to training data folder>"
+```
+
+Reticade expects the training data folder to be structured as follows:
+```
+training_folder
+│   positions.csv
+│   metadata.txt
+└───images
+│   │   0.tif
+│   │   1.tif
+│   │   ...
+```
+
+Where:
+* `positions.csv` contains N positions on the linear track, one per line, arranged in chronological order.
+* `metadata.txt` contains additional information about the data (e.g. which animal, the date, the training protocol) that will be attached to the decoder.
+* `images` is a folder of N images, the alphabetical sorting of which yields the images in chronological order.
