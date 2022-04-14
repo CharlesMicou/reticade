@@ -65,12 +65,12 @@ Note: to exit the Python shell and return to the command-line simply enter the `
 Import the reticade module.
 
 ``` python3
-import reticade
+from reticade import interactive
 ```
 
 Create a new reticade harness:
 ``` python3
-my_harness = reticade.Harness()
+my_harness = interactive.Harness()
 ```
 This harness serves as the main interaction point.
 
