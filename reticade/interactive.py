@@ -7,10 +7,12 @@ import time
 
 
 class Harness:
-    def __init__(self):
+    def __init__(self, tick_interval_s=1/30):
         self.coordinator = reticade.coordinator.Coordinator()
         self.coordinator.set_imaging(
             reticade.imaging_link.ImagingLink((512, 512)))
+        self.tick_interval_s = tick_interval_s
+        self.frame_report_interval_s = 1.0
 
     def show_sharedmem_info(self):
         info = self.coordinator.get_imaging_info()
@@ -48,10 +50,36 @@ class Harness:
     def load_decoder(self, path_to_decoder):
         print("Warn: currently ignoring loading decoder and loading a dummy")
 
+    def _print_frame_times(self, frame_times):
+        print(
+            f"Last {len(frame_times)} frame processing times (ms) [min, avg, max]: {(min(frame_times) * 1000):.2f}, {(np.mean(frame_times) * 1000):.2f}, {(max(frame_times) * 1000):.2f}")
+        frame_times.clear()
+
     def run(self, stop_after_seconds=10):
-        # Once every 1 second, print:
-        # [Frame time: (min, avg, max); Position: (min, avg, max); Decoder info: ]
-        print("Doing that run thing right about now")
+        start_time = time.perf_counter()
+        next_frame_start_time = start_time
+        last_reported_time = start_time
+        frame_times = []
+
+        while start_time + stop_after_seconds > time.perf_counter():
+            # Note(charlie): We *deliberately* hot loop here, because scheduling on Windows
+            # at ~ 33 ms precision is very sketchy. Need to validate that eating this thread
+            # doesn't interfere with imaging.
+            while (time.perf_counter() < next_frame_start_time):
+                continue
+
+            frame_start_time = time.perf_counter()
+
+            self.coordinator.tick()
+
+            frame_end_time = time.perf_counter()
+            frame_times.append(frame_start_time - next_frame_start_time)
+            if frame_end_time > last_reported_time + self.frame_report_interval_s:
+                last_reported_time = frame_end_time
+                self._print_frame_times(frame_times)
+
+            next_frame_start_time = time.perf_counter() + self.tick_interval_s
+        print(f"Finished after {(time.perf_counter() - start_time):.3f} seconds")
 
     def close(self):
         self.coordinator.close()
