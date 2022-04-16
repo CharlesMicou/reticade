@@ -130,6 +130,7 @@ You can do this with:
 ```python3
 my_harness.close()
 ```
+If you forget to close your harness before exiting the environment, you'll get a warning about leaked memory resources.
 
 ## Training decoder
 

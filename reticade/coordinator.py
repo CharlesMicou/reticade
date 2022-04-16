@@ -31,6 +31,18 @@ class Coordinator:
             self.controller.close()
         self.controller = new_controller
 
+    def get_debug_image(self):
+        if self.imaging is None:
+            return None
+        return self.imaging.get_current_frame()
+
+    def get_imaging_info(self):
+        if self.imaging is None:
+            return None
+        return (self.imaging.get_sharedmem_addr(), self.imaging.get_sharedmem_name())
+
     def close(self):
-        self.controller.close()
-        self.imaging.close()
+        if self.controller != None:
+            self.controller.close()
+        if self.imaging != None:
+            self.imaging.close()
