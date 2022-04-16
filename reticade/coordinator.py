@@ -41,6 +41,12 @@ class Coordinator:
             return None
         return (self.imaging.get_sharedmem_addr(), self.imaging.get_sharedmem_name())
 
+    def send_debug_message(self, msg):
+        if self.controller is None:
+            print("Can't send a message when target is not configured. Set the IP and port first.")
+            return
+        self.controller.send_command(msg)
+
     def close(self):
         if self.controller != None:
             self.controller.close()

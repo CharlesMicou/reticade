@@ -1,19 +1,24 @@
 import reticade.coordinator
 import reticade.imaging_link
+import reticade.udp_controller_link
 import matplotlib.pyplot as plt
 import numpy as np
+import time
+
 
 class Harness:
     def __init__(self):
         self.coordinator = reticade.coordinator.Coordinator()
-        self.coordinator.set_imaging(reticade.imaging_link.ImagingLink((512, 512)))
+        self.coordinator.set_imaging(
+            reticade.imaging_link.ImagingLink((512, 512)))
 
     def show_sharedmem_info(self):
         info = self.coordinator.get_imaging_info()
         if info is None:
             print("Imaging is not configured")
         else:
-            print(f"Imaging shared memory {info[1]} starts at address {info[0]}")
+            print(
+                f"Imaging shared memory {info[1]} starts at address {info[0]}")
 
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()
@@ -22,15 +27,23 @@ class Harness:
         else:
             print("Showing current image. Exit viewing window to regain control.")
             # Todo(charlie): make sure normalisation is sane
-            print(f"Intensities: min: {np.min(image)}, mean: {np.mean(image)}, max: {np.max(image)}")
+            print(
+                f"Intensities: min: {np.min(image)}, mean: {np.mean(image)}, max: {np.max(image)}")
             plt.imshow(image)
             plt.show()
 
-    def set_link_ip(self, ip_addr):
-        print("Totally set the link address")
+    def set_link_ip(self, ip_addr, port=7777):
+        print(f"Setting target to port {port} on address {ip_addr}")
+        udp_connection = reticade.udp_controller_link.UdpControllerLink(
+            ip_addr, port)
+        self.coordinator.set_controller(udp_connection)
 
     def test_link(self, data):
-        print("Yup totally sending that data")
+        for item in data:
+            to_send = float(item)
+            print(f"Sending test payload: {to_send}")
+            self.coordinator.send_debug_message(to_send)
+            time.sleep(0.5)
 
     def load_decoder(self, path_to_decoder):
         print("Warn: currently ignoring loading decoder and loading a dummy")
