@@ -1,6 +1,3 @@
-from reticade.decoders.dummy_decoder import MeanValueTaker
-
-
 class DecoderPipeline:
     def __init__(self, pipeline):
         assert(len(pipeline) > 0)

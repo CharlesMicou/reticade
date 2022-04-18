@@ -1,3 +1,5 @@
+import logging
+
 class Coordinator:
     def __init__(self):
         self.imaging = None
@@ -43,7 +45,7 @@ class Coordinator:
 
     def send_debug_message(self, msg):
         if self.controller is None:
-            print("Can't send a message when target is not configured. Set the IP and port first.")
+            logging.warn("Can't send a message when target is not configured. Set the IP and port first.")
             return
         self.controller.send_command(msg)
 

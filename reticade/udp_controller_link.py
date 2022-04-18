@@ -1,6 +1,6 @@
 import socket
 import struct
-
+import logging
 
 class UdpControllerLink:
     """
@@ -22,7 +22,7 @@ class UdpControllerLink:
             self.udp_socket.sendto(payload, self.target)
         except socket.error as err:
             # Todo(charlie): really need a logger here
-            print(f"ERROR: Network failure. Details:\n{err}")
+            logging.error(f"Network failure. Details:\n{err}")
             assert(False)
 
     def close(self):
