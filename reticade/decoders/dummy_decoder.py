@@ -10,3 +10,10 @@ class MeanValueTaker:
 
     def process(self, raw_input):
         return np.mean(raw_input)
+
+    def from_json(json_params):
+        return MeanValueTaker()
+
+    def to_json(self):
+        return {'name': 'Dummy',
+                'params': {}}

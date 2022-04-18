@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Don't commit test configurations
+testing/
+
+# Automated interactive environment
+scratch.py
