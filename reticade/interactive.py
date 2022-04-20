@@ -16,20 +16,24 @@ class Harness:
     def __init__(self, tick_interval_s=1/30):
         self.coordinator = reticade.coordinator.Coordinator()
         self.tick_interval_s = tick_interval_s
-        self.frame_report_interval_s = 1.0
-
-    def set_imaging_channel(self, channel_number):
+        self.frame_report_interval_s = 10.0
         if platform.system() is 'Windows':
-            imaging = reticade.win_imaging_link.ImagingLink(channel_number)
-            self.coordinator.set_imaging(imaging)
+            self.is_windows = True
+            logging.warn("Running on windows: tick interval will be fixed to ~15 ms")
         elif platform.system() is 'Darwin':
-            imaging = reticade.imaging_link.ImagingLink((512, 512))
-            self.coordinator.set_imaging(imaging)
+            self.is_windows = False
         elif platform.system() is 'Linux':
-            imaging = reticade.imaging_link.ImagingLink((512, 512))
-            self.coordinator.set_imaging(imaging)
+            self.is_windows = False
         else:
             logging.error("Couldn't determine operating system.")
+
+    def set_imaging_channel(self, channel_number):
+        if self.is_windows:
+            imaging = reticade.win_imaging_link.ImagingLink(channel_number)
+            self.coordinator.set_imaging(imaging)
+        else:
+            imaging = reticade.imaging_link.ImagingLink((512, 512))
+            self.coordinator.set_imaging(imaging)
 
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()
@@ -72,15 +76,20 @@ class Harness:
         frame_times.clear()
 
     def run(self, stop_after_seconds=10):
+        if self.is_windows:
+            self._run_windows(stop_after_seconds)
+        else:
+            self._run_unix(stop_after_seconds)
+
+    def _run_unix(self, stop_after_seconds):
         start_time = time.perf_counter()
         next_frame_start_time = start_time
         last_reported_time = start_time
         frame_times = []
 
         while start_time + stop_after_seconds > time.perf_counter():
-            # Note(charlie): We *deliberately* hot loop here, because scheduling on Windows
-            # at ~ 33 ms precision is very sketchy. Need to validate that eating this thread
-            # doesn't interfere with imaging.
+            # Note(charlie): Because we've split the windows and linux implementation,
+            # this hot loop is no longer necessary and can be cleaned up.
             while (time.perf_counter() < next_frame_start_time):
                 continue
 
@@ -94,7 +103,42 @@ class Harness:
                 last_reported_time = frame_end_time
                 self._print_frame_times(frame_times)
 
-            next_frame_start_time = time.perf_counter() + self.tick_interval_s
+            next_frame_start_time = next_frame_start_time + self.tick_interval_s
+            if next_frame_start_time < time.perf_counter():
+                next_frame_start_time = time.perf_counter()
+
+        logging.info(
+            f"Finished after {(time.perf_counter() - start_time):.3f} seconds")
+
+    def _run_windows(self, stop_after_seconds):
+        start_time = time.perf_counter()
+        end_time = start_time + stop_after_seconds
+        last_frame_end = start_time
+        last_reported_time = start_time
+        frames_in_interval = 0
+        worst_frame_time = 0
+
+        while end_time > time.perf_counter():
+            # On windows, the perf counter only has a resolution of ~15ms
+            # We're going to abuse this to run *every* 15ms
+            while last_frame_end == time.perf_counter():
+                continue
+            
+            frame_start = time.perf_counter()
+            self.coordinator.tick()
+            frames_in_interval += 1
+            frame_end = time.perf_counter()
+            worst_frame_time = max(worst_frame_time, frame_end - frame_start)
+
+            if frame_end > last_reported_time + self.frame_report_interval_s:
+                last_reported_time = frame_end
+                rate = frames_in_interval / self.frame_report_interval_s
+                logging.info(f"Rate: {rate:.2f} Hz over last {frames_in_interval} frames. Slowest frame: {(worst_frame_time / 1000):.2f} ms")
+                frames_in_interval = 0
+                worst_frame_time = 0
+            
+            last_frame_end = frame_end
+
         logging.info(
             f"Finished after {(time.perf_counter() - start_time):.3f} seconds")
 
