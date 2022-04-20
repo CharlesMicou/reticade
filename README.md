@@ -2,13 +2,60 @@
 
 ## First time setup & requirements
 
-This project requires Python 3.10 or greater, and is tested against Python 3.10.2.
+### Windows
+
+This project requires Python 3.8 or greater, and is tested against Python 3.8.4 on Windows.
+
+```
+python --version
+```
+
+#### 2. Ensure pip is installed
+
+```
+python -m pip --version
+```
+
+#### 3. Ensure venv is installed
+
+```
+python -m pip install --user virtualenv
+```
+
+#### 4. Create a new virtual environmnet
+```
+python -m venv env
+```
+
+
+#### 5. Activate your virtual environment
+```
+env\Scripts\activate.bat
+```
+
+NB: if you want to leave the virtual environment from this terminal window, run `deactivate`.
+
+#### 6. Install Dependencies
+From within the virtual environment, run:
+
+```
+python -m pip install -r requirements_windows.txt
+```
+
+#### 7. Run the tests
+This will run a quick sanity-check to test self-contained components. It won't test connectivity to the Bruker imaging software or LabView instance! We'll look into how to check test those connections in the next section.
+
+```
+python -m pytest -W ignore::DeprecationWarning
+```
+
+### Linux and OSX
+
+This project requires Python 3.8 or greater, and is tested against Python 3.10.2 on OS X and Linux.
 
 After cloning this repository:
 
 #### 1. Ensure the correct Python version is installed
-
-Note: on Windows, replace `python3` commands with `python`.
 
 ```
 python3 --version
@@ -55,10 +102,7 @@ python3 -m pytest -W ignore::DeprecationWarning
 
 ## Using Reticade Interactively
 
-From within the virtual environment, and from within the root directory, start up a Python shell:
-```
-python3
-```
+From within the virtual environment, and from within the root directory, start up a Python shell with the `python` command on Windows (or `python3` on Linux/OSX).
 
 Note: to exit the Python shell and return to the command-line simply enter the `exit()` command.
 
@@ -76,18 +120,18 @@ This harness serves as the main interaction point.
 
 ### Testing connectivity to the microscope
 
-In order to receive data from the microscope, the Bruker software needs to write data into shared memory managed by the reticade harness. You can view how reticade has configured the shared memory block through:
+This program retrieves image data through PrairieLink. In order for it to retrieve data, the PrairieView software must be running on the machine.
+To configure access to image data, first set the channel to read from (this example selects channel 2):
 
 ```python3
-my_harness.show_sharedmem_info()
+my_harness.set_imaging_channel(2)
 ```
-You can use this information to configure the Bruker software to write into the shared memory space. [todo: write an extra section for this when we better understand it]
 
 To verify that you are receiving data from the microscope, you can run:
 ``` python3
 my_harness.show_raw_image()
 ```
-This will display the latest image at the time of running. Close the image to regain control of the shell.
+This will display the latest image at the time of running. Close the image window to regain control of the shell.
 
 ### Testing connectivity to LabView
 

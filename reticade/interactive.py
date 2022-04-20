@@ -2,29 +2,34 @@ import reticade.coordinator
 import reticade.imaging_link
 import reticade.udp_controller_link
 import reticade.decoder_harness
+import reticade.win_imaging_link
 import reticade.decoders.dummy_decoder
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import platform
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%H:%M:%S', level=logging.INFO)
 
 class Harness:
     def __init__(self, tick_interval_s=1/30):
         self.coordinator = reticade.coordinator.Coordinator()
-        self.coordinator.set_imaging(
-            reticade.imaging_link.ImagingLink((512, 512)))
         self.tick_interval_s = tick_interval_s
         self.frame_report_interval_s = 1.0
 
-    def show_sharedmem_info(self):
-        info = self.coordinator.get_imaging_info()
-        if info is None:
-            logging.warn("Imaging is not configured")
+    def set_imaging_channel(self, channel_number):
+        if platform.system() is 'Windows':
+            imaging = reticade.win_imaging_link.ImagingLink(channel_number)
+            self.coordinator.set_imaging(imaging)
+        elif platform.system() is 'Darwin':
+            imaging = reticade.imaging_link.ImagingLink((512, 512))
+            self.coordinator.set_imaging(imaging)
+        elif platform.system() is 'Linux':
+            imaging = reticade.imaging_link.ImagingLink((512, 512))
+            self.coordinator.set_imaging(imaging)
         else:
-            logging.info(
-                f"Imaging shared memory {info[1]} starts at address {info[0]}")
+            logging.error("Couldn't determine operating system.")
 
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()

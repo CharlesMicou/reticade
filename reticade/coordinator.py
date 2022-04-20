@@ -1,5 +1,6 @@
 import logging
 
+
 class Coordinator:
     def __init__(self):
         self.imaging = None
@@ -38,14 +39,10 @@ class Coordinator:
             return None
         return self.imaging.get_current_frame()
 
-    def get_imaging_info(self):
-        if self.imaging is None:
-            return None
-        return (self.imaging.get_sharedmem_addr(), self.imaging.get_sharedmem_name())
-
     def send_debug_message(self, msg):
         if self.controller is None:
-            logging.warn("Can't send a message when target is not configured. Set the IP and port first.")
+            logging.warn(
+                "Can't send a message when target is not configured. Set the IP and port first.")
             return
         self.controller.send_command(msg)
 
