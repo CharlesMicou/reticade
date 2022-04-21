@@ -199,3 +199,13 @@ Where:
 * `positions.csv` contains N positions on the linear track, one per line, arranged in chronological order.
 * `metadata.txt` contains additional information about the data (e.g. which animal, the date, the training protocol) that will be attached to the decoder.
 * `images` is a folder of N images, the alphabetical sorting of which yields the images in chronological order.
+
+## Usage tips
+
+### Populate initial LabView sample
+
+You can send arbitrary data to LabView from the test harness. If you want to initialise the LabView state, e.g. setting the BMI-controlled velocity to zero before running an experiment, you can send a packet to configure the state. For example:
+
+```python3
+my_harness.test_link([0])
+```

@@ -10,16 +10,19 @@ import numpy as np
 import time
 import platform
 
-logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%H:%M:%S', level=logging.INFO)
+logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
+                    datefmt='%H:%M:%S', level=logging.INFO)
+
 
 class Harness:
     def __init__(self, tick_interval_s=1/30):
         self.coordinator = reticade.coordinator.Coordinator()
         self.tick_interval_s = tick_interval_s
-        self.frame_report_interval_s = 10.0
+        self.frame_report_interval_s = 5.0
         if platform.system() is 'Windows':
             self.is_windows = True
-            logging.warn("Running on windows: tick interval will be fixed to ~15 ms")
+            logging.warn(
+                "Running on windows: tick interval will be fixed to ~15 ms")
         elif platform.system() is 'Darwin':
             self.is_windows = False
         elif platform.system() is 'Linux':
@@ -38,9 +41,11 @@ class Harness:
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()
         if image is None:
-            logging.warn("Can't retrieve raw image, as no imaging is configured")
+            logging.warn(
+                "Can't retrieve raw image, as no imaging is configured")
         else:
-            logging.info("Showing current image. Exit viewing window to regain control.")
+            logging.info(
+                "Showing current image. Exit viewing window to regain control.")
             # Todo(charlie): make sure normalisation is sane
             logging.info(
                 f"Intensities: min: {np.min(image)}, mean: {np.mean(image)}, max: {np.max(image)}")
@@ -70,12 +75,14 @@ class Harness:
         worst_frame_time = max(frame_times)
         logging.info(
             f"Last {len(frame_times)} frame processing times (ms) [min, avg, max]: {(min(frame_times) * 1000):.2f}, {(np.mean(frame_times) * 1000):.2f}, {(worst_frame_time * 1000):.2f}")
-        
+
         if worst_frame_time > self.tick_interval_s:
-            logging.warn(f"At least one frame took longer than {(self.tick_interval_s / 1000):.2f} ms to process.")
+            logging.warn(
+                f"At least one frame took longer than {(self.tick_interval_s / 1000):.2f} ms to process.")
         frame_times.clear()
 
     def run(self, stop_after_seconds=10):
+        self._pre_run_check()
         if self.is_windows:
             self._run_windows(stop_after_seconds)
         else:
@@ -123,7 +130,7 @@ class Harness:
             # We're going to abuse this to run *every* 15ms
             while last_frame_end == time.perf_counter():
                 continue
-            
+
             frame_start = time.perf_counter()
             self.coordinator.tick()
             frames_in_interval += 1
@@ -133,14 +140,23 @@ class Harness:
             if frame_end > last_reported_time + self.frame_report_interval_s:
                 last_reported_time = frame_end
                 rate = frames_in_interval / self.frame_report_interval_s
-                logging.info(f"Rate: {rate:.2f} Hz over last {frames_in_interval} frames. Slowest frame: {(worst_frame_time / 1000):.2f} ms")
+                logging.info(
+                    f"Rate: {rate:.2f} Hz over last {frames_in_interval} frames. Slowest frame: {(worst_frame_time / 1000):.2f} ms")
                 frames_in_interval = 0
                 worst_frame_time = 0
-            
+
             last_frame_end = frame_end
 
         logging.info(
             f"Finished after {(time.perf_counter() - start_time):.3f} seconds")
+
+    def _pre_run_check(self):
+        if self.coordinator.imaging is None:
+            logging.warn("PrairieView Imaging not configured.")
+        if self.decoder is None:
+            logging.warn("Decoder is not configured.")
+        if self.controller is None:
+            logging.warn("LabView connection is not configured.")
 
     def close(self):
         self.coordinator.close()
