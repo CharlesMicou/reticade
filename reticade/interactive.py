@@ -19,13 +19,13 @@ class Harness:
         self.coordinator = reticade.coordinator.Coordinator()
         self.tick_interval_s = tick_interval_s
         self.frame_report_interval_s = 5.0
-        if platform.system() is 'Windows':
+        if platform.system() == 'Windows':
             self.is_windows = True
             logging.warn(
                 "Running on windows: tick interval will be fixed to ~15 ms")
-        elif platform.system() is 'Darwin':
+        elif platform.system() == 'Darwin':
             self.is_windows = False
-        elif platform.system() is 'Linux':
+        elif platform.system() == 'Linux':
             self.is_windows = False
         else:
             logging.error("Couldn't determine operating system.")
@@ -78,7 +78,7 @@ class Harness:
 
         if worst_frame_time > self.tick_interval_s:
             logging.warn(
-                f"At least one frame took longer than {(self.tick_interval_s / 1000):.2f} ms to process.")
+                f"At least one frame took longer than {(self.tick_interval_s * 1000):.2f} ms to process.")
         frame_times.clear()
 
     def run(self, stop_after_seconds=10):
@@ -141,7 +141,7 @@ class Harness:
                 last_reported_time = frame_end
                 rate = frames_in_interval / self.frame_report_interval_s
                 logging.info(
-                    f"Rate: {rate:.2f} Hz over last {frames_in_interval} frames. Slowest frame: {(worst_frame_time / 1000):.2f} ms")
+                    f"Rate: {rate:.2f} Hz over last {frames_in_interval} frames. Slowest frame: {(worst_frame_time * 1000):.2f} ms")
                 frames_in_interval = 0
                 worst_frame_time = 0
 
@@ -153,9 +153,9 @@ class Harness:
     def _pre_run_check(self):
         if self.coordinator.imaging is None:
             logging.warn("PrairieView Imaging not configured.")
-        if self.decoder is None:
+        if self.coordinator.decoder is None:
             logging.warn("Decoder is not configured.")
-        if self.controller is None:
+        if self.coordinator.controller is None:
             logging.warn("LabView connection is not configured.")
 
     def close(self):
