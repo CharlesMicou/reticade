@@ -18,7 +18,6 @@ known_pipeline_stages = {
 
 class DecoderPipeline:
     def __init__(self, pipeline):
-        assert(len(pipeline) > 0)
         self.pipeline_stages = pipeline
 
     def decode(self, input):

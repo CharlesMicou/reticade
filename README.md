@@ -150,7 +150,7 @@ Be sure to check that LabView actually receives the data correctly!
 
 ### Loading a previously trained decoder
 
-Decoders are saved as files with a `.reticade` suffix. This repository includes a 'fake' decoder for validation purposes at `<todo filepath>`. For information on how to create a decoder from previous data, see [todo section on training decoders].
+Decoders are saved as .json files. This repository includes a 'fake' decoder for validation purposes at `demo/fake_decoder.json`. For information on how to create a decoder from previous data, see the 'Training a decoder' section.
 
 You can load a decoder into a harness as follows:
 ```python3
@@ -176,12 +176,12 @@ my_harness.close()
 ```
 If you forget to close your harness before exiting the environment, you'll get a warning about leaked memory resources.
 
-## Training decoder
+## Training a decoder
 
 A decoder can be trained on another computer and then shared with the computer running the real-time decoding. To train a decoder with the default settings, run the following from your virtual environment (_not_ your Python shell):
 
 ```
-python3 -m reticade.decoders.train_default_decoder "<path to training data folder>"
+python3 -m reticade.train_decoder "<path to training data folder>"
 ```
 
 Reticade expects the training data folder to be structured as follows:
