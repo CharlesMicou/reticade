@@ -19,7 +19,7 @@ class ImagingLink:
         self.memory_block = shared_memory.SharedMemory(
             create=True, size=memsize_bytes)
         self.shared_array = np.ndarray(
-            (image_size[0], image_size[1]), dtype=np.uint16, buffer=self.memory_block.buf)
+            (image_size[0], image_size[1]), dtype=np.int16, buffer=self.memory_block.buf)
         # Force-fill the array on creation so it's not populated by garbage in memory
         self.shared_array.fill(0)
 
