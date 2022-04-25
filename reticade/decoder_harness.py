@@ -2,6 +2,7 @@ import json
 from reticade.decoders import sig_proc
 from reticade.decoders import dummy_decoder
 from reticade.decoders import movement_controller
+from reticade.decoders import svm_decoder
 import logging
 
 # Note(charlie): this is hacky -- a neater solution would be to reflect
@@ -14,6 +15,7 @@ known_pipeline_stages = {
     'OutputScaler': sig_proc.OutputScaler,
     'Dummy': dummy_decoder.MeanValueTaker,
     'FakeController': movement_controller.FakeController,
+    'SvmClassifier': svm_decoder.SvmClassifier,
 }
 
 class DecoderPipeline:
