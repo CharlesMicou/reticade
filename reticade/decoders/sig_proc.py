@@ -42,7 +42,7 @@ class DoGFilter:
                 'params': {
                     'low_sigma': self.low_sigma,
                     'high_sigma': self.high_sigma,
-                    'truncate': self.truncate }}
+                    'truncate': self.truncate}}
 
 
 class DeltaFFilter:
@@ -91,3 +91,18 @@ class Flatten:
 
     def to_json(self):
         return {'name': 'Flatten', 'params': {}}
+
+
+class OutputScaler:
+    def __init__(self, scale):
+        self.scale = scale
+        pass
+
+    def process(self, raw_input):
+        return raw_input * self.scale
+
+    def from_json(json_params):
+        return OutputScaler(float(json_params['scale']))
+
+    def to_json(self):
+        return {'name': 'OutputScaler', 'params': {'scale': self.scale}}

@@ -11,6 +11,7 @@ known_pipeline_stages = {
     'DoGFilter': sig_proc.DoGFilter,
     'DeltaFFilter': sig_proc.DeltaFFilter,
     'Flatten': sig_proc.Flatten,
+    'OutputScaler': sig_proc.OutputScaler,
     'Dummy': dummy_decoder.MeanValueTaker,
     'FakeController': movement_controller.FakeController,
 }
