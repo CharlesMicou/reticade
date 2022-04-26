@@ -120,15 +120,16 @@ class Harness:
     def _run_windows(self, stop_after_seconds):
         start_time = time.perf_counter()
         end_time = start_time + stop_after_seconds
-        last_frame_end = start_time
+        next_frame_start = start_time
         last_reported_time = start_time
         frames_in_interval = 0
         worst_frame_time = 0
 
         while end_time > time.perf_counter():
-            # On windows, the perf counter only has a resolution of ~15ms
-            # We're going to abuse this to run *every* 15ms
-            while last_frame_end == time.perf_counter():
+            # On windows, the perf counter should bypass the 15ms time resolution
+            # but we still need to hot loop because resuming a thread will reintroduce
+            # that restriction.
+            while time.perf_counter() < next_frame_start:
                 continue
 
             frame_start = time.perf_counter()
@@ -145,7 +146,7 @@ class Harness:
                 frames_in_interval = 0
                 worst_frame_time = 0
 
-            last_frame_end = frame_end
+            next_frame_start = max(time.perf_counter(), next_frame_start + self.tick_interval_s)
 
         logging.info(
             f"Finished after {(time.perf_counter() - start_time):.3f} seconds")

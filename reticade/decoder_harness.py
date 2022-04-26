@@ -15,6 +15,7 @@ known_pipeline_stages = {
     'OutputScaler': sig_proc.OutputScaler,
     'Dummy': dummy_decoder.MeanValueTaker,
     'FakeController': movement_controller.FakeController,
+    'ClassMovementController': movement_controller.ClassMovementController,
     'SvmClassifier': svm_decoder.SvmClassifier,
 }
 

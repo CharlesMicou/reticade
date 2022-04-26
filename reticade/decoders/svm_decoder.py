@@ -1,4 +1,6 @@
 import numpy as np
+import pickle
+import base64
 from sklearn.svm import LinearSVC
 
 
@@ -17,15 +19,19 @@ class SvmClassifier:
 
     def from_training_data(cell_data, classes, c=0.05):
         classifier = LinearSVC(
-            penalty='l1', C=c, dual=False).train(cell_data, classes)
+            penalty='l1', C=c, dual=False).fit(cell_data, classes)
         score = classifier.score(cell_data, classes)
         print(f"Rough guideline training score {score}")
         return SvmClassifier(classifier)
 
-    # Todo: need to figure out serialisation
     def from_json(json_params):
-        return SvmClassifier()
+        as_bytes = base64.b64decode(json_params['raw'].encode('utf-8'))
+        underlying_decoder = pickle.loads(as_bytes)
+        return SvmClassifier(underlying_decoder)
 
     def to_json(self):
+        raw_params = pickle.dumps(self.underlying_decoder)
+        # Note: omit b'' indicators
+        as_string = base64.b64encode(raw_params)[2:-1]
         return {'name': 'SvmClassifier',
-                'params': {}}
+                'params': {'raw': as_string}}

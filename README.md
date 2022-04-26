@@ -154,7 +154,7 @@ Decoders are saved as .json files. This repository includes a 'fake' decoder for
 
 You can load a decoder into a harness as follows:
 ```python3
-my_harness.load_decoder("path/to/decoder.reticade")
+my_harness.load_decoder("path/to/decoder.json")
 ```
 
 ### Running reticade after the harness is configured
