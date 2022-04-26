@@ -19,7 +19,7 @@ NUM_CLASSES = 9
 
 def get_image_paths(path_in):
     image_folder = path_in + '/images'
-    contents = os.list_dir(image_folder)
+    contents = os.listdir(image_folder)
     contents.sort()
     all_images = []
     for c in contents:
@@ -81,22 +81,22 @@ def train_decoder_default(path_in):
     sig_proc_pipeline = [downsampler, dog, second_downsammpler, delta, flat]
     interim_harness = decoder_harness.DecoderPipeline(sig_proc_pipeline)
     post_sig_proc = []
-    print(f"[{(time.perf_counter - start_time):.2f}s] Passing images through sigproc pipeline")
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Passing images through sigproc pipeline")
     for image_file in get_image_paths(path_in):
         image = imread(image_file)
         post_sig_proc.append(interim_harness.decode(image))
     post_sig_proc = np.array(post_sig_proc)
 
-    print(f"[{(time.perf_counter - start_time):.2f}s] Processing position file")
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Processing position file")
     positions = get_positions(path_in)
     valid_positions, valid_images = make_valid_laps(positions, post_sig_proc)
     classes = positions_to_uniform_classes(valid_positions)
 
-    print(f"[{(time.perf_counter - start_time):.2f}s] Training SVM classifier")
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(valid_images, classes)
 
-    print(f"[{(time.perf_counter - start_time):.2f}s] Extracting behavioural data")
-    controller = movement_controller.ClassMovementController.from_training_data(valid_positions, classes, NUM_CLASSES)
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
+    controller = movement_controller.ClassMovementController.from_training_data(valid_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
     # [todo]: measure the cm/s discrepancy within labview
     output_scaler = sig_proc.OutputScaler(1.0)

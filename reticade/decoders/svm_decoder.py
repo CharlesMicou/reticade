@@ -18,6 +18,8 @@ class SvmClassifier:
         return np.mean(raw_input)
 
     def from_training_data(cell_data, classes, c=0.05):
+        # Note(charlie): l2 reg seemed to take a much longer time to solve/fails to converge
+        # Should investigate why that's happening.
         classifier = LinearSVC(
             penalty='l1', C=c, dual=False).fit(cell_data, classes)
         score = classifier.score(cell_data, classes)
@@ -32,6 +34,6 @@ class SvmClassifier:
     def to_json(self):
         raw_params = pickle.dumps(self.underlying_decoder)
         # Note: omit b'' indicators
-        as_string = base64.b64encode(raw_params)[2:-1]
+        as_string = str(base64.b64encode(raw_params))[2:-1]
         return {'name': 'SvmClassifier',
                 'params': {'raw': as_string}}

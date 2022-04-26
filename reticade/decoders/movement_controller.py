@@ -30,7 +30,7 @@ class ClassMovementController:
             pos_idx = i * chunk_size
             velocities = []
             for j in range(pos_idx + 1, pos_idx + chunk_size):
-                velocities.append((positions[j] - positions[j - 1] * sample_rate))
+                velocities.append((positions[j] - positions[j - 1]) * sample_rate)
             
             if min(velocities) < 0:
                 continue
@@ -44,8 +44,8 @@ class ClassMovementController:
 
 
     def from_training_data(positions, classes, num_classes, sample_rate):
-        positions_by_class = [[] for i in num_classes]
-        for pos, i in enumerate(positions):
+        positions_by_class = [[] for i in range(num_classes)]
+        for i, pos in enumerate(positions):
             positions_by_class[classes[i]].append(pos)
         median_velocity_by_class = [ClassMovementController._velocity_within_class(p, sample_rate) for p in positions_by_class]
         max_acceleration = ClassMovementController._get_max_accel(positions, sample_rate)

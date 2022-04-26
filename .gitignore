@@ -133,3 +133,6 @@ testing/
 
 # Automated interactive environment
 scratch.py
+
+# OSX nonsense
+*.DS_Store
