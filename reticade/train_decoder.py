@@ -15,6 +15,7 @@ MAX_POS_VALUE = 900.0
 MIN_LAP_VALUE = 50.0
 MIN_SAMPLES_PER_LAP = 20
 SAMPLE_RATE_HZ = 30
+NUM_CLASSES = 9
 
 def get_image_paths(path_in):
     image_folder = path_in + '/images'
@@ -65,8 +66,8 @@ def make_valid_laps(positions, images):
 
     return np.concatenate(positions_by_lap), np.concatenate(images_by_lap)
 
-def positions_to_uniform_classes(positions, num_classes=9):
-    bin_size = MAX_POS_VALUE / num_classes
+def positions_to_uniform_classes(positions):
+    bin_size = MAX_POS_VALUE / NUM_CLASSES
     return (positions / bin_size).astype(int)
 
 def train_decoder_default(path_in):
@@ -94,14 +95,16 @@ def train_decoder_default(path_in):
     print(f"[{(time.perf_counter - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(valid_images, classes)
 
-    # [todo]: replace this with a class -> velocity decoder
     print(f"[{(time.perf_counter - start_time):.2f}s] Extracting behavioural data")
-    controller = movement_controller.FakeController(0.2, 0.8, 2.0)
+    controller = movement_controller.ClassMovementController.from_training_data(valid_positions, classes, NUM_CLASSES)
 
     # [todo]: measure the cm/s discrepancy within labview
     output_scaler = sig_proc.OutputScaler(1.0)
     pipeline = [downsampler, dog, second_downsammpler, delta, flat, decoder, controller, output_scaler]
-    return decoder_harness.DecoderPipeline(pipeline)
+
+    # Record the output of the classifier and the controller
+    instrumented_stages = [5, 6]
+    return decoder_harness.DecoderPipeline(pipeline, instrumented_stages=instrumented_stages)
 
 if __name__ == '__main__':
     path_in = sys.argv[1]

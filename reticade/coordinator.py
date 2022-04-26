@@ -46,6 +46,12 @@ class Coordinator:
             return
         self.controller.send_command(msg)
 
+    def dump_instrumentation_data(self, out_file):
+        if self.decoder == None:
+            return
+        self.decoder.write_instrumented_stages(out_file)
+        self.decoder.clear_instrumentation()
+
     def close(self):
         if self.controller != None:
             self.controller.close()

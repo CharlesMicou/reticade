@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 import platform
+import datetime
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
@@ -87,6 +88,9 @@ class Harness:
             self._run_windows(stop_after_seconds)
         else:
             self._run_unix(stop_after_seconds)
+        datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        out_file = 'output-' + datestring + '.csv'
+        self.coordinator.dump_instrumentation_data(out_file)
 
     def _run_unix(self, stop_after_seconds):
         start_time = time.perf_counter()
