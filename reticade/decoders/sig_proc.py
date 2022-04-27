@@ -78,6 +78,29 @@ class DeltaFFilter:
                     'x_dim': self.fast_history.shape[0],
                     'y_dim': self.fast_history.shape[1]}}
 
+class DeltaFSliding:
+    def __init__(self, fast_samples, slow_samples, dimensions):
+        # Todo: experiment with this
+        self.num_samples = 0
+        self.fast_history = np.zeros((fast_samples, dimensions[0], dimensions[1]))
+        self.slow_history = np.zeros((slow_samples, dimensions[0], dimensions[1]))
+
+    def process(self, raw_input):
+        self.fast_history[self.num_samples % self.fast_history.shape[0],:,:] = raw_input
+        self.slow_history[self.num_samples % self.slow_history.shape[0],:,:] = raw_input
+        self.num_samples += 1
+
+        fast_mean = np.mean(self.fast_history, axis=0)
+        slow_mean = np.mean(self.slow_history, axis=0)
+        if self.num_samples < self.fast_history.shape[0]:
+            fast_mean *= self.fast_history.shape[0] / self.num_samples
+        if self.num_samples < self.slow_history.shape[0]:
+            slow_mean *= self.slow_history.shape[0] / self.num_samples
+
+        difference = fast_mean - slow_mean
+        # Note(charlie): using divide instead of true divide so that division by zero results in zero silently
+        return np.divide(difference, slow_mean)
+
 
 class Flatten:
     def __init__(self):
