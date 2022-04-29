@@ -78,6 +78,8 @@ def train_decoder_default(path_in):
     delta = sig_proc.DeltaFFilter(0.75, 0.3, (32, 32))
     flat = sig_proc.Flatten()
 
+    # Note(charlie): this pipeline is broken because it can feed negative values
+    # to the delta f filter
     sig_proc_pipeline = [downsampler, dog, second_downsammpler, delta, flat]
     interim_harness = decoder_harness.DecoderPipeline(sig_proc_pipeline)
     post_sig_proc = []

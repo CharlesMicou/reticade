@@ -3,6 +3,7 @@ from reticade.decoders import sig_proc
 from reticade.decoders import dummy_decoder
 from reticade.decoders import movement_controller
 from reticade.decoders import svm_decoder
+from reticade.decoders import motion_correction
 import logging
 import time
 
@@ -18,6 +19,7 @@ known_pipeline_stages = {
     'FakeController': movement_controller.FakeController,
     'ClassMovementController': movement_controller.ClassMovementController,
     'SvmClassifier': svm_decoder.SvmClassifier,
+    'FlowMotionCorrection': motion_correction.FlowMotionCorrection,
 }
 
 class DecoderPipeline:
