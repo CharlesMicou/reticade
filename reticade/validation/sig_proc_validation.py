@@ -63,6 +63,8 @@ for i, image_file in enumerate(get_image_paths(path_in)):
         execution_times[j+1] += (stop - start)
         processed_ims[j+1].append(last_val)
 
+NUM_FRAMES_TO_VIEW = min(NUM_FRAMES_TO_VIEW, len(processed_ims[0]))
+
 ms_per_stage = [d * 1000 / NUM_FRAMES_TO_VIEW for d in execution_times]
 
 rows = 2

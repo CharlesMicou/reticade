@@ -200,6 +200,22 @@ Where:
 * `metadata.txt` contains additional information about the data (e.g. which animal, the date, the training protocol) that will be attached to the decoder.
 * `images` is a folder of N images, the alphabetical sorting of which yields the images in chronological order.
 
+### Fine-tuning decoder training
+
+The decoder is a pipeline, where each stage in the pipeline can be broadly described as belonging to one of the following categories:
+* Signal processing: cleaning up the raw image data
+* Pattern matching: machine-learned mappings between signal-processed images and position on the track
+* Behavioural interpretation: matching up the animal's behaviour to where it is on the track
+
+The most important part of the decoder to fine-tune on a per-animal basis is the signal processing layer, as different imaging settings will require different signal processing. The first things to look at are:
+* The high and low frequencies of the spatial bandpass filter (the DoG filter). A more zoomed-out field of view will have cells that are smaller, so the bandpass needs to be set smaller.
+* The time-constants of the delta F filter. These operate on discrete frames, so if you're changing the imaging frequency you need to change these time constants accordingly.
+
+You can visualise arbitrary signal processing pipelines (and test the effect of changes) by running:
+```
+python3 -m reticade.validation.sig_proc_validation <path to training data folder>
+```
+
 ## Usage tips
 
 ### Populate initial LabView sample
