@@ -2,7 +2,6 @@ import reticade.coordinator
 import reticade.imaging_link
 import reticade.udp_controller_link
 import reticade.decoder_harness
-import reticade.win_imaging_link
 import reticade.decoding.dummy_decoder
 import logging
 import matplotlib.pyplot as plt
@@ -10,6 +9,9 @@ import numpy as np
 import time
 import platform
 from datetime import datetime
+
+if platform.system() == 'Windows':
+    import reticade.win_imaging_link
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)

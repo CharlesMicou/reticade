@@ -3,6 +3,7 @@ import win32com.client
 from multiprocessing import shared_memory
 import logging
 import os
+import ctypes
 
 class ImagingLink:
     def __init__(self, channel_number):
@@ -28,9 +29,9 @@ class SharedMemImagingLink:
         prairie_pixels_per_line = self.prairie_link.PixelsPerLine()
         prairie_lines_per_frame = self.prairie_link.LinesPerFrame()
         if prairie_pixels_per_line != image_size[0]:
-            logging.error(f"Expected {image_size[0]} pixels per line but PrarieView reported {prairie_pixels_per_line}")
+            logging.warn(f"Expected {image_size[0]} pixels per line but PrarieView reported {prairie_pixels_per_line}")
         if prairie_lines_per_frame != image_size[1]:
-            logging.error(f"Expected {image_size[1]} pixels per line but PrarieView reported {prairie_lines_per_frame}")
+            logging.warn(f"Expected {image_size[1]} pixels per line but PrarieView reported {prairie_lines_per_frame}")
 
         # Configure shared memory space
         frame_count = 1
@@ -51,20 +52,17 @@ class SharedMemImagingLink:
 
         self.pid = os.getpid()
         self.num_samples = image_size[0] * image_size[1]
-        # Load a test frame to check we're actually receiving data
-        success = self._send_prairieview_rrd()
-        if not success:
-            logging.error("PrairieView script to stream raw data failed")
+        self.sharedmem_addr = ctypes.addressof(self.memory_block.buf)
 
     def get_current_frame(self):
         self._send_prairieview_rrd()
         return self.shared_array.astype(np.float64)
 
     def _send_prairieview_rrd(self):
-        return self.prairie_link.SendScriptCommands(f"rrd {self.pid} {self.get_sharedmem_addr()} {self.num_samples}")
-
-    def get_sharedmem_addr(self):
-        return hex(id(self.shared_array))
+        bytes_written = self.prairie_link.SendScriptCommands(f"rrd {self.pid} {self.sharedmem_addr} {self.num_samples}")
+        if bytes_written > 0:
+            print(f"Wrote {bytes_written} bytes")
+        return bytes_written
 
     def close(self):
         success = self.prairie_link.SendScriptCommands('-srd False')
