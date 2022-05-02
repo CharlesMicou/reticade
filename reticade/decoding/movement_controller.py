@@ -23,7 +23,7 @@ class ClassMovementController:
         return np.median(velocities)
 
     def _get_max_accel(positions, sample_rate):
-        chunk_size = 10
+        chunk_size = 40
         max_bucket_idx = int(len(positions) / chunk_size)
         smoothed_velocities = []
         for i in range(max_bucket_idx):
@@ -40,7 +40,7 @@ class ClassMovementController:
         for i in range(1, len(smoothed_velocities)):
             accels.append(abs(smoothed_velocities[i] - smoothed_velocities[i - 1]) * sample_rate)
         
-        return max(accels)
+        return np.percentile(accels, 80)
 
 
     def from_training_data(positions, classes, num_classes, sample_rate):
