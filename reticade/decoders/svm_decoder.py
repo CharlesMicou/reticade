@@ -1,6 +1,5 @@
 import numpy as np
-import pickle
-import base64
+import reticade.util.serialization as serial
 from sklearn.svm import LinearSVC
 
 
@@ -27,13 +26,9 @@ class SvmClassifier:
         return SvmClassifier(classifier)
 
     def from_json(json_params):
-        as_bytes = base64.b64decode(json_params['raw'].encode('utf-8'))
-        underlying_decoder = pickle.loads(as_bytes)
+        underlying_decoder = serial.obj_from_picklestring(json_params['raw'])
         return SvmClassifier(underlying_decoder)
 
     def to_json(self):
-        raw_params = pickle.dumps(self.underlying_decoder)
-        # Note: omit b'' indicators
-        as_string = str(base64.b64encode(raw_params))[2:-1]
         return {'name': 'SvmClassifier',
-                'params': {'raw': as_string}}
+                'params': {'raw': serial.obj_to_picklestring(self.underlying_decoder)}}

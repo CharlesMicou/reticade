@@ -2,7 +2,7 @@ import sys
 import os
 from datetime import datetime
 from reticade import decoder_harness
-from reticade.decoders import sig_proc
+from reticade.decoders import motion_correction, sig_proc
 from reticade.decoders import dummy_decoder
 from reticade.decoders import movement_controller
 from reticade.decoders import svm_decoder
@@ -72,20 +72,30 @@ def positions_to_uniform_classes(positions):
 
 def train_decoder_default(path_in):
     start_time = time.perf_counter()
-    downsampler = sig_proc.Downsampler((4, 4))
-    dog = sig_proc.DoGFilter(1, 5)
-    second_downsammpler = sig_proc.Downsampler((4, 4))
-    delta = sig_proc.DeltaFFilter(0.75, 0.3, (32, 32))
-    flat = sig_proc.Flatten()
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Loading files and creating reference images for sigproc")
 
-    # Note(charlie): this pipeline is broken because it can feed negative values
-    # to the delta f filter
-    sig_proc_pipeline = [downsampler, dog, second_downsammpler, delta, flat]
-    interim_harness = decoder_harness.DecoderPipeline(sig_proc_pipeline)
-    post_sig_proc = []
-    print(f"[{(time.perf_counter() - start_time):.2f}s] Passing images through sigproc pipeline")
+    downsampler = sig_proc.Downsampler((4, 4))
+    low_pass = sig_proc.LowPassFilter(1.2)
+
+    interim_harness = decoder_harness.DecoderPipeline([downsampler, low_pass])
+    first_stage_out = []
     for image_file in get_image_paths(path_in):
         image = imread(image_file)
+        first_stage_out.append(interim_harness.decode(image))
+    first_stage_out = np.array(first_stage_out)
+    reference_image = first_stage_out.mean(axis=0)
+
+    motion = motion_correction.FlowMotionCorrection(reference_image)
+    delta = sig_proc.DeltaFFilter(0.3, 0.001, (128, 128), initial_state=reference_image)
+    dog = sig_proc.DoGFilter(1, 5)
+    second_downsampler = sig_proc.Downsampler((4, 4))
+    threshold = sig_proc.Threshold(0)
+    flat = sig_proc.Flatten()
+
+    interim_harness = decoder_harness.DecoderPipeline([motion, delta, dog, threshold, second_downsampler, flat])
+    post_sig_proc = []
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Passing images through sigproc pipeline")
+    for image in first_stage_out:
         post_sig_proc.append(interim_harness.decode(image))
     post_sig_proc = np.array(post_sig_proc)
 
@@ -102,11 +112,17 @@ def train_decoder_default(path_in):
 
     # [todo]: measure the cm/s discrepancy within labview
     output_scaler = sig_proc.OutputScaler(1.0)
-    pipeline = [downsampler, dog, second_downsammpler, delta, flat, decoder, controller, output_scaler]
+    pipeline = [downsampler, low_pass, motion, delta, dog, threshold, second_downsampler, flat, decoder, controller, output_scaler]
 
     # Record the output of the classifier and the controller
-    instrumented_stages = [5, 6]
-    return decoder_harness.DecoderPipeline(pipeline, instrumented_stages=instrumented_stages)
+    indices_to_instrument = []
+    names_to_instrument = ["Classifier", "Controller"]
+    for i, stage in enumerate(pipeline):
+        stage_name = type(stage).__name__
+        if any(s in stage_name for s in names_to_instrument):
+            indices_to_instrument.append(i)
+    
+    return decoder_harness.DecoderPipeline(pipeline, instrumented_stages=indices_to_instrument)
 
 if __name__ == '__main__':
     path_in = sys.argv[1]

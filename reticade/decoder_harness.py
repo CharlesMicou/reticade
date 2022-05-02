@@ -15,6 +15,9 @@ known_pipeline_stages = {
     'DeltaFFilter': sig_proc.DeltaFFilter,
     'Flatten': sig_proc.Flatten,
     'OutputScaler': sig_proc.OutputScaler,
+    'LowPassFilter': sig_proc.LowPassFilter,
+    'MedianFilter': sig_proc.MedianFilter,
+    'Threshold': sig_proc.Threshold,
     'Dummy': dummy_decoder.MeanValueTaker,
     'FakeController': movement_controller.FakeController,
     'ClassMovementController': movement_controller.ClassMovementController,
@@ -58,7 +61,7 @@ class DecoderPipeline:
         with open(out_file, 'w') as f:
             json_stages = [p.to_json() for p in self.pipeline_stages]
             json.dump({'json_stages' : json_stages, 'instrumentation': self.instrumented_stages}, f)
-        logging.warn(f"Wrote decoder to: {out_file}")
+        logging.info(f"Wrote decoder to: {out_file}")
 
     def clear_instrumentation(self):
         self.instrumentation_history = []
