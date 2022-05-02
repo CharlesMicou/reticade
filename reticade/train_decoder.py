@@ -2,10 +2,10 @@ import sys
 import os
 from datetime import datetime
 from reticade import decoder_harness
-from reticade.decoders import motion_correction, sig_proc
-from reticade.decoders import dummy_decoder
-from reticade.decoders import movement_controller
-from reticade.decoders import svm_decoder
+from reticade.decoding import motion_correction, sig_proc
+from reticade.decoding import dummy_decoder
+from reticade.decoding import movement_controller
+from reticade.decoding import svm_decoder
 from matplotlib.pyplot import imread
 import numpy as np
 import time

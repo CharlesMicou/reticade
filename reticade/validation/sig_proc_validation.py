@@ -1,7 +1,7 @@
 import sys
 import os
-from reticade.decoders import sig_proc
-from reticade.decoders import motion_correction
+from reticade.decoding import sig_proc
+from reticade.decoding import motion_correction
 from matplotlib.pyplot import imread
 import numpy as np
 import matplotlib.animation as animation

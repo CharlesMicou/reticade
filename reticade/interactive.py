@@ -3,7 +3,7 @@ import reticade.imaging_link
 import reticade.udp_controller_link
 import reticade.decoder_harness
 import reticade.win_imaging_link
-import reticade.decoders.dummy_decoder
+import reticade.decoding.dummy_decoder
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,7 +68,7 @@ class Harness:
 
     def load_decoder(self, path_to_decoder):
         logging.warn("currently ignoring loading decoder and loading a dummy")
-        decoder = reticade.decoders.dummy_decoder.MeanValueTaker()
+        decoder = reticade.decoding.dummy_decoder.MeanValueTaker()
         pipeline = reticade.decoder_harness.DecoderPipeline([decoder])
         self.coordinator.set_decoder(pipeline)
 

@@ -1,9 +1,9 @@
 import json
-from reticade.decoders import sig_proc
-from reticade.decoders import dummy_decoder
-from reticade.decoders import movement_controller
-from reticade.decoders import svm_decoder
-from reticade.decoders import motion_correction
+from reticade.decoding import sig_proc
+from reticade.decoding import dummy_decoder
+from reticade.decoding import movement_controller
+from reticade.decoding import svm_decoder
+from reticade.decoding import motion_correction
 import logging
 import time
 

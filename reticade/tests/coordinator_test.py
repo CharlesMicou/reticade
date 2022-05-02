@@ -4,7 +4,7 @@ import struct
 from reticade.controller_link import ControllerLink
 from reticade.coordinator import Coordinator
 from reticade.decoder_harness import DecoderPipeline
-from reticade.decoders.dummy_decoder import MeanValueTaker
+from reticade.decoding.dummy_decoder import MeanValueTaker
 from reticade.imaging_link import ImagingLink
 from reticade.tests.image_link_test import TEST_IMAGE_DIMS
 from reticade.tests.tools.fake_labview import FakeLabview
