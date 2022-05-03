@@ -25,8 +25,6 @@ class Harness:
         self.frame_report_interval_s = 5.0
         if platform.system() == 'Windows':
             self.is_windows = True
-            logging.warn(
-                "Running on windows: tick interval will be fixed to ~15 ms")
         elif platform.system() == 'Darwin':
             self.is_windows = False
         elif platform.system() == 'Linux':

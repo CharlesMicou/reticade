@@ -225,3 +225,7 @@ You can send arbitrary data to LabView from the test harness. If you want to ini
 ```python3
 my_harness.test_link([0])
 ```
+
+### Position extraction from LabView
+
+The `legacy_scripts` directory contains a Krupic Lab MATLAB script to sync up galvo signals to positions.
