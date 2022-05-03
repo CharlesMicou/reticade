@@ -5,6 +5,12 @@ import logging
 import os
 import ctypes
 
+
+"""
+This imaging link is too slow to render at 30 Hz because of Prairie View's
+long response times. However, it's a useful debugging tool to validate
+that the raw data stream parsed by SharedMemImagingLink is working.
+"""
 class ImagingLink:
     def __init__(self, channel_number):
         self.channel_number = channel_number
@@ -22,6 +28,7 @@ class ImagingLink:
 class SharedMemImagingLink:
     def __init__(self, channel_number, image_size=(512, 512)):
         self.channel_number = channel_number
+        self.image_size = image_size
         self.prairie_link = win32com.client.Dispatch("PrairieLink.Application")
         self.prairie_link.Connect()
 
@@ -33,6 +40,7 @@ class SharedMemImagingLink:
         if prairie_lines_per_frame != image_size[1]:
             logging.warn(f"Expected {image_size[1]} pixels per line but PrarieView reported {prairie_lines_per_frame}")
 
+        self.pview_samples_per_pixel = self.prairie_link.SamplesPerPixel()
         # Configure shared memory space
         frame_count = 1
         bytes_per_pixel = 2  # 16 bit integers
@@ -53,19 +61,17 @@ class SharedMemImagingLink:
         self.pid = os.getpid()
         self.num_samples = image_size[0] * image_size[1]
         self.sharedmem_addr = ctypes.addressof(self.memory_block.buf)
-        # Todo: try this too
-        self.simple_bytearray = bytearray(memsize_bytes)
-        self.simple_bytearray_addr = ctypes.addressof(self.simple_bytearray)
 
     def get_current_frame(self):
         self._send_prairieview_rrd()
         return self.shared_array.astype(np.float64)
 
     def _send_prairieview_rrd(self):
-        bytes_written = self.prairie_link.SendScriptCommands(f"rrd {self.pid} {self.sharedmem_addr} {self.num_samples}")
-        if bytes_written > 0:
-            print(f"Wrote {bytes_written} bytes")
-        return bytes_written
+        num_samples_written = self.prairie_link.ReadRawDataStream_3(self.pid, self.sharedmem_addr, self.num_samples)
+        if num_samples_written > 0:
+            # todo(charlie): verbose logging mode should track this.
+            pass
+        return num_samples_written
 
     def close(self):
         success = self.prairie_link.SendScriptCommands('-srd False')

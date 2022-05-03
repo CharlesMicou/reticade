@@ -5,6 +5,7 @@ import reticade.decoder_harness
 import reticade.decoding.dummy_decoder
 import logging
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import numpy as np
 import time
 import platform
@@ -35,11 +36,12 @@ class Harness:
 
     def set_imaging_channel(self, channel_number):
         if self.is_windows:
-            imaging = reticade.win_imaging_link.ImagingLink(channel_number)
+            imaging = reticade.win_imaging_link.SharedMemImagingLink(channel_number)
             self.coordinator.set_imaging(imaging)
         else:
             imaging = reticade.imaging_link.ImagingLink((512, 512))
             self.coordinator.set_imaging(imaging)
+        logging.info(f"Set imaging channel to {channel_number}")
 
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()
@@ -164,6 +166,25 @@ class Harness:
             logging.warn("Decoder is not configured.")
         if self.coordinator.controller is None:
             logging.warn("LabView connection is not configured.")
+
+    def _live_animate(self, idx):
+        image = self.coordinator.get_debug_image()
+        if image is not None:
+            self.imref.set_data(image)
+
+    def show_live_view(self):
+        image = self.coordinator.get_debug_image()
+        if image is None:
+            logging.warn("Can't render live image: imaging not configured.")
+            return
+        
+        fig, ax = plt.subplots()
+        self.imref = ax.imshow(image, vmin=0, vmax=20000)
+        interval_ms = int(self.tick_interval_s * 1000)
+        anim = animation.FuncAnimation(fig, self._live_animate, range(100), interval=interval_ms)
+        logging.info(f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
+        plt.show()
+
 
     def close(self):
         self.coordinator.close()
