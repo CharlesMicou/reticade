@@ -60,7 +60,9 @@ class SharedMemImagingLink:
 
         self.pid = os.getpid()
         self.num_samples = image_size[0] * image_size[1]
-        self.sharedmem_addr = ctypes.addressof(self.memory_block.buf)
+        Buffer = ctypes.c_char * memsize_bytes
+        buf = Buffer.from_buffer(self.memory_block.buf)
+        self.sharedmem_addr = ctypes.addressof(buf)
 
     def get_current_frame(self):
         self._send_prairieview_rrd()

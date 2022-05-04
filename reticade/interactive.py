@@ -178,6 +178,8 @@ class Harness:
         
         fig, ax = plt.subplots()
         self.imref = ax.imshow(image, vmin=0, vmax=20000)
+        ax.set_title("Reticade Live View")
+        fig.colorbar(self.imref, ax=ax)
         interval_ms = int(self.tick_interval_s * 1000)
         anim = animation.FuncAnimation(fig, self._live_animate, range(100), interval=interval_ms)
         logging.info(f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
