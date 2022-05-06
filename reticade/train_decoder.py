@@ -18,6 +18,8 @@ MIN_SAMPLES_PER_LAP = 20
 SAMPLE_RATE_HZ = 30
 NUM_CLASSES = 9
 
+LABVIEW_REFRESH_RATE_HZ = 50.0
+
 
 def get_image_paths(path_in):
     image_folder = path_in + '/images'
@@ -93,8 +95,8 @@ def train_decoder_default(path_in):
     # Note(charlie): replace the controller with a stereotyped, fake version here
     controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
 
-    # [todo]: measure the cm/s discrepancy within labview
-    output_scaler = sig_proc.OutputScaler(1.0)
+    # Note(charlie): Labview running at 50 Hz means we need to divide this by 50
+    output_scaler = sig_proc.OutputScaler(1.0 / LABVIEW_REFRESH_RATE_HZ)
     pipeline = [downsampler, low_pass, motion, delta, dog, threshold,
                 second_downsampler, flat, decoder, controller, output_scaler]
 
