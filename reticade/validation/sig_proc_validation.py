@@ -70,7 +70,9 @@ ms_per_stage = [d * 1000 / NUM_FRAMES_TO_VIEW for d in execution_times]
 rows = 2
 cols = 4
 fig, ax = plt.subplots(rows, cols)
-
+fig.set_figheight(6)
+fig.set_figwidth(18)
+fig.set_dpi(150)
 imrefs = []
 
 cmap_diverge = plt.get_cmap("seismic")
