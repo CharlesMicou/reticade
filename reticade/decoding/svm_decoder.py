@@ -16,11 +16,12 @@ class SvmClassifier:
     def process(self, raw_input):
         return np.mean(raw_input)
 
-    def from_training_data(cell_data, classes, c=0.05):
+    def from_training_data(cell_data, classes, c=1.0, max_iterations=10000):
         # Note(charlie): l2 reg seemed to take a much longer time to solve/fails to converge
         # Should investigate why that's happening.
+        # Note(charlie): Liblinear doesn't always converge with the default number of iterations.
         classifier = LinearSVC(
-            penalty='l1', C=c, dual=False).fit(cell_data, classes)
+            penalty='l1', C=c, dual=False, max_iter=max_iterations).fit(cell_data, classes)
         score = classifier.score(cell_data, classes)
         print(f"Rough guideline training score {score}")
         return SvmClassifier(classifier)

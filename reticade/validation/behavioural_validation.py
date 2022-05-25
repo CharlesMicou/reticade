@@ -45,7 +45,7 @@ concatenated_laps = np.concatenate(positions_by_lap)
 classes = positions_to_uniform_classes(concatenated_laps)
 
 controller = movement_controller.ClassMovementController.from_training_data(concatenated_laps, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
-controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
+#controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
 
 print(controller.median_velocity_by_class)
 print(controller.max_acceleration)
