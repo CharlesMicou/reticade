@@ -47,7 +47,7 @@ def positions_to_uniform_classes(positions):
     return (positions / bin_size).astype(int)
 
 
-def train_decoder_default(path_in):
+def train_decoder(path_in, withheld_fraction=0.0):
     start_time = time.perf_counter()
     print(f"[{(time.perf_counter() - start_time):.2f}s] Loading files and creating reference images for sigproc")
 
@@ -80,17 +80,25 @@ def train_decoder_default(path_in):
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Processing position file")
     positions = get_positions(path_in)
-    valid_positions, valid_images = behavioural.make_valid_laps(
-        positions, post_sig_proc, MIN_LAP_VALUE, MAX_POS_VALUE, MIN_SAMPLES_PER_LAP)
-    classes = positions_to_uniform_classes(valid_positions)
+    training_positions, training_images, test_positions, test_images = behavioural.concat_valid_laps(
+        positions, post_sig_proc, MIN_LAP_VALUE, MAX_POS_VALUE, MIN_SAMPLES_PER_LAP, withheld_fraction)
+    classes = positions_to_uniform_classes(training_positions)
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(
-        valid_images, classes)
+        training_images, classes)
+
+    if test_positions.size > 0:
+        test_classes = positions_to_uniform_classes(test_positions)
+        test_result = decoder.score(test_images, test_classes)
+        train_result = decoder.score(training_images, classes)
+        print(f"Training score: {train_result:.3f}, Test score: {test_result:.3f}. Laps withheld: {(withheld_fraction * 100):.1f}%")
+    else:
+        print(f"Sanity check: score on training data {decoder.score(training_images, classes):.3f}")
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
     controller = movement_controller.ClassMovementController.from_training_data(
-        valid_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
+        training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
     # Note(charlie): replace the controller with a stereotyped, fake version here
     controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
@@ -114,10 +122,13 @@ def train_decoder_default(path_in):
 if __name__ == '__main__':
     path_in = sys.argv[1]
     folder = None
+    withheld_fraction = 0
     if len(sys.argv) > 2:
         folder = sys.argv[2]
+    if len(sys.argv) > 3:
+        withheld_fraction = float(sys.argv[3])
     print(f"[start] Training decoder with default settings from {path_in}")
-    decoder = train_decoder_default(path_in)
+    decoder = train_decoder(path_in, withheld_fraction=withheld_fraction)
     datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     prefix = 'decoder-'
     if folder:
