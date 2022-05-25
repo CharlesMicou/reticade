@@ -24,8 +24,13 @@ class SvmClassifier:
             penalty='l1', C=c, dual=False, max_iter=max_iterations).fit(cell_data, classes)
         return SvmClassifier(classifier)
 
-    def score(self, cell_data, classes):
-        return self.underlying_decoder.score(cell_data, classes)
+    def score(self, cell_data, classes, tolerance):
+        predictions = self.underlying_decoder.predict(cell_data)
+        successful_predictions = 0
+        for i, v in enumerate(classes):
+            if abs(v - predictions[i]) <= tolerance:
+                successful_predictions += 1
+        return successful_predictions / len(predictions)
 
     def from_json(json_params):
         underlying_decoder = serial.obj_from_picklestring(json_params['raw'])
