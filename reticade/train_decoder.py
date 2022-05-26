@@ -90,11 +90,11 @@ def train_decoder(path_in, withheld_fraction=0.0):
 
     if test_positions.size > 0:
         test_classes = positions_to_uniform_classes(test_positions)
-        tolerances = [0, 1, 2]
+        tolerances = [0, 1, 2, 3, 4]
         test_results = [decoder.score(test_images, test_classes, tolerance) for tolerance in tolerances]
         printable = ", ".join([f"{x:.3f}" for x in test_results])
         train_result = decoder.score(training_images, classes, 0)
-        print(f"Training score: {train_result:.3f}, Test score: {printable} [k = 0, 1, 2]. Laps withheld: {(withheld_fraction * 100):.1f}%")
+        print(f"Training score: {train_result:.3f}, Test score: {printable} [k = 0->4]. Laps withheld: {(withheld_fraction * 100):.1f}%")
     else:
         print(f"Sanity check: score on training data {decoder.score(training_images, classes):.3f}")
 

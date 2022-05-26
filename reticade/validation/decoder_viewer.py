@@ -1,9 +1,12 @@
 import sys
 import os
+
+import matplotlib
 from reticade import decoder_harness
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import imread
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 from skimage.transform import rescale
 import matplotlib.animation as animation
 
@@ -31,17 +34,39 @@ coefs = np.copy(decoder.underlying_decoder.coef_).reshape((9, 32, 32))
 
 fig, axs = plt.subplots(3, 3)
 cmap_names = ['Purples', 'Blues', 'Greens', 'Oranges', 'Reds']
+bin_colors = ['darkred', 'orangered', 'gold', 'lawngreen', 'teal', 'deepskyblue', 'blue', 'darkviolet', 'deeppink']
 for coef_idx in range(coefs.shape[0]):
     ax_i = coef_idx % 3
     ax_j = int(coef_idx / 3)
     ax = axs[ax_j][ax_i]
-    ax.set_title(f"Bin {coef_idx} coef sizes")
-    cmap_name = cmap_names[coef_idx % len(cmap_names)]
-    imref = ax.imshow(np.abs(coefs[coef_idx,:,:]), cmap=plt.get_cmap('plasma'))
-    fig.colorbar(imref, ax=ax)
+    ax.set_title(f"Bin {coef_idx}")
+    actual_cmap = LinearSegmentedColormap.from_list(f"cmap{coef_idx}", ['white', bin_colors[coef_idx]])
+    imref = ax.imshow(np.abs(coefs[coef_idx,:,:]), cmap=actual_cmap)
+    fig.colorbar(imref, ax=ax, shrink=0.9)
     ax.set_xticks([])
     ax.set_yticks([])
+fig.suptitle("Classifier coefficient maps", fontsize=24)
+plt.show()
 
+fig, ax = plt.subplots()
+cmap_names = ['Purples', 'Blues', 'Greens', 'Oranges', 'Reds']
+ax.set_title(f"Classifier coefficient map", fontsize=24)
+
+first_image = imread(get_image_paths(image_path)[0])
+ax.imshow(first_image, cmap='gray')
+ax.set_xticks([])
+ax.set_yticks([])
+for coef_idx in range(coefs.shape[0]):
+    cmap_name = cmap_names[coef_idx % len(cmap_names)]
+    actual_cmap = LinearSegmentedColormap.from_list(f"cmap{coef_idx}", ['white', bin_colors[coef_idx]])
+
+    coef_sizes = rescale(np.abs(coefs[coef_idx,:,:]), 16, order=0, anti_aliasing=False)
+    alphas = (coef_sizes > 0) * 0.5
+    ax.imshow(coef_sizes, cmap=actual_cmap, alpha=alphas)
+
+fakecmap = ListedColormap(bin_colors)
+normalizer = matplotlib.colors.Normalize(vmin=0, vmax=900)
+fig.colorbar(matplotlib.cm.ScalarMappable(norm=normalizer, cmap=fakecmap))
 plt.show()
 
 fig, ax = plt.subplots()
