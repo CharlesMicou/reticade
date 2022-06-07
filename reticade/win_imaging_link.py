@@ -7,7 +7,7 @@ import ctypes
 
 
 """
-This imaging link is too slow to render at 30 Hz because of Prairie View's
+This basic imaging link is too slow to render at 30 Hz because of Prairie View's
 long response times. However, it's a useful debugging tool to validate
 that the raw data stream parsed by SharedMemImagingLink is working.
 """
@@ -27,6 +27,11 @@ class ImagingLink:
         self.prairie_link.Disconnect()
 
 
+"""
+This imaging link uses a raw stream from PrairieView. Its implementation
+is tightly coupled to PrairieView version 5.6's handling of raw data streams,
+and makes use of some tricky workarounds to correctly marshall the data.
+"""
 class SharedMemImagingLink:
     def __init__(self, channel_number, image_size=(512, 512)):
         self.channel_number = channel_number

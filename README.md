@@ -120,7 +120,7 @@ This harness serves as the main interaction point.
 
 ### Testing connectivity to the microscope
 
-This program retrieves image data through PrairieLink. In order for it to retrieve data, the PrairieView software must be running on the machine.
+This program retrieves image data through PrairieLink. In order for it to retrieve data, the PrairieView software must be running on the machine. It's essential that the version of PrairieView is 5.6 (earlier versions lack the APIs to retrieve raw data quickly enough).
 To configure access to image data, first set the channel to read from (this example selects channel 2):
 
 ```python3
