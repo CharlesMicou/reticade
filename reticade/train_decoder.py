@@ -96,7 +96,7 @@ def train_decoder(path_in, withheld_fraction=0.0):
         train_result = decoder.score(training_images, classes, 0)
         print(f"Training score: {train_result:.3f}, Test score: {printable} [k = 0->4]. Laps withheld: {(withheld_fraction * 100):.1f}%")
     else:
-        print(f"Sanity check: score on training data {decoder.score(training_images, classes):.3f}")
+        print(f"Sanity check: score on training data {decoder.score(training_images, classes, 0):.3f}")
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
     controller = movement_controller.ClassMovementController.from_training_data(
