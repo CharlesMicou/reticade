@@ -69,10 +69,9 @@ class Harness:
             time.sleep(0.5)
 
     def load_decoder(self, path_to_decoder):
-        logging.warn("currently ignoring loading decoder and loading a dummy")
-        decoder = reticade.decoding.dummy_decoder.MeanValueTaker()
-        pipeline = reticade.decoder_harness.DecoderPipeline([decoder])
-        self.coordinator.set_decoder(pipeline)
+        decoder = reticade.decoder_harness.DecoderPipeline.from_json(path_to_decoder)
+        self.coordinator.set_decoder(decoder)
+        logging.info(f"Loaded decoder from {path_to_decoder}")
 
     def _print_frame_times(self, frame_times):
         worst_frame_time = max(frame_times)
