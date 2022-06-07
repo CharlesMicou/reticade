@@ -100,10 +100,13 @@ class SharedMemImagingLink:
                     waiting_for_new_frame = False
                     self.frame_idx = (self.frame_idx + 1) % 2
 
-        # todo(charlie): investigate LUT distorting raw values in prairieview
         reshaped = self.frame_storage[(
             self.frame_idx + 1) % 2].reshape(self.data_layout)
-        mean_over_samples = np.mean(reshaped, axis=2)
+
+        # Note(charlie): this shift and bitmask exactly duplicates behaviour within PrairieView
+        # This is important for images saved to disk to match their real-time readouts.
+        corrected = np.bitwise_and(reshaped - 8192, 8191)
+        mean_over_samples = np.mean(corrected, axis=2)
         return self._unraster_image(mean_over_samples)
 
     def _send_prairieview_rrd(self):
