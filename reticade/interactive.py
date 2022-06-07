@@ -166,9 +166,12 @@ class Harness:
             logging.warn("LabView connection is not configured.")
 
     def _live_animate(self, idx):
+        start = time.perf_counter()
         image = self.coordinator.get_debug_image()
         if image is not None:
             self.imref.set_data(image)
+        end = time.perf_counter()
+        logging.info(f"Full image fetch took {((end - start) * 1000):.1f}ms")
 
     def show_live_view(self):
         image = self.coordinator.get_debug_image()
@@ -177,7 +180,7 @@ class Harness:
             return
         
         fig, ax = plt.subplots()
-        self.imref = ax.imshow(image, vmin=0, vmax=20000)
+        self.imref = ax.imshow(image, vmin=0, vmax=8192)
         ax.set_title("Reticade Live View")
         fig.colorbar(self.imref, ax=ax)
         interval_ms = int(self.tick_interval_s * 1000)

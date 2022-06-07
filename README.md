@@ -133,6 +133,12 @@ my_harness.show_raw_image()
 ```
 This will display the latest image at the time of running. Close the image window to regain control of the shell.
 
+If you want to view a continuous stream of data from the microscope, instead run:
+```python3
+my_harness.show_live_view()
+```
+Close the window to regain control of the shell.
+
 ### Testing connectivity to LabView
 
 In order to send data to LabView, we need to tell the harness the IP address of the machine running LabView.
@@ -142,9 +148,9 @@ my_harness.set_link_ip("123.123.123.123")
 ```
 
 You can send some 'dummy' data to LabView and validate that it receives it as follows:
-```
-dummy_decoded_positions = [100, 200, 300, 400]
-my_harness.test_link(dummy_decoded_positions)
+```python3
+dummy_decoded_velocities = [1, 2, 3, 4]
+my_harness.test_link(dummy_decoded_velocities)
 ```
 Be sure to check that LabView actually receives the data correctly!
 
