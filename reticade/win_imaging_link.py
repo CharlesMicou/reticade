@@ -108,10 +108,11 @@ class SharedMemImagingLink:
         reshaped = self.frame_storage[(
             self.frame_idx + 1) % 2].reshape(self.data_layout)
 
-        # Note(charlie): this shift and bitmask exactly duplicates behaviour within PrairieView
-        # This is important for images saved to disk to match their real-time readouts.
-        corrected = np.bitwise_and(reshaped - 8192, 8191)
-        mean_over_samples = np.mean(corrected, axis=2)
+        # Note(charlie): this subtraction of 8192 is at the suggestion of the 
+        # PrairieView engineer to duplicate their behaviour. It needs validating.
+        reshaped[reshaped < 8192] = 0
+        reshaped = reshaped - 8192
+        mean_over_samples = np.mean(reshaped, axis=2)
         return self._unraster_image(mean_over_samples)
 
     def _send_prairieview_rrd(self):
