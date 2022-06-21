@@ -47,7 +47,7 @@ def positions_to_uniform_classes(positions):
     return (positions / bin_size).astype(int)
 
 
-def train_decoder(path_in, withheld_fraction=0.0):
+def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     start_time = time.perf_counter()
     print(f"[{(time.perf_counter() - start_time):.2f}s] Loading files and creating reference images for sigproc")
 
@@ -77,6 +77,10 @@ def train_decoder(path_in, withheld_fraction=0.0):
     for image in first_stage_out:
         post_sig_proc.append(interim_harness.decode(image))
     post_sig_proc = np.array(post_sig_proc)
+    if cache_images:
+        with open(cache_images, 'wb') as file:
+            np.save(file, post_sig_proc)
+        print(f"[bonus]: Saved images to {cache_images}")
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Processing position file")
     positions = get_positions(path_in)
@@ -125,12 +129,15 @@ if __name__ == '__main__':
     path_in = sys.argv[1]
     folder = None
     withheld_fraction = 0
+    cache_images_fn = None
     if len(sys.argv) > 2:
         folder = sys.argv[2]
     if len(sys.argv) > 3:
         withheld_fraction = float(sys.argv[3])
+    if len(sys.argv) > 4:
+        cache_images_filename = sys.argv[4]
     print(f"[start] Training decoder with default settings from {path_in}")
-    decoder = train_decoder(path_in, withheld_fraction=withheld_fraction)
+    decoder = train_decoder(path_in, withheld_fraction=withheld_fraction, cache_images=cache_images_filename)
     datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     prefix = 'decoder-'
     if folder:
