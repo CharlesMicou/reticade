@@ -55,15 +55,15 @@ class SharedMemImagingLink:
             image_size[1] * self.pview_samples_per_pixel
         # Configure shared memory space
         bytes_per_sample = 2  # 16 bit integers
-        memsize_bytes = self.num_samples_per_frame * \
-            bytes_per_sample * self.num_buffered_frames
+        self.num_samples_to_request = self.num_samples_per_frame * self.num_buffered_frames
+        memsize_bytes = self.num_samples_to_request * bytes_per_sample
 
         self.memory_block = shared_memory.SharedMemory(
             create=True, size=memsize_bytes)
 
         # Multiple line scans
         self.shared_array = np.ndarray(
-            memsize_bytes, dtype=np.int16, buffer=self.memory_block.buf)
+            self.num_samples_to_request, dtype=np.int16, buffer=self.memory_block.buf)
         # Force-fill the array on creation so it's not populated by garbage in memory
         self.shared_array.fill(0)
 
@@ -117,7 +117,7 @@ class SharedMemImagingLink:
 
     def _send_prairieview_rrd(self):
         num_samples_written = self.prairie_link.ReadRawDataStream_3(
-            self.pid, self.sharedmem_addr, len(self.memory_block.buf))
+            self.pid, self.sharedmem_addr, self.num_samples_to_request)
         return num_samples_written
 
     # Note: this will mutate an underlying image, it's indended for use

@@ -13,14 +13,13 @@ import time
 SAMPLE_RATE_HZ = 30
 NUM_FRAMES_TO_VIEW = SAMPLE_RATE_HZ * 30
 
-def get_image_paths(path_in):
-    image_folder = path_in + '/images'
-    contents = os.listdir(image_folder)
+def get_image_paths(image_path):
+    contents = os.listdir(image_path)
     contents.sort()
     all_images = []
     for c in contents:
         if '.tif' in c:
-            all_images.append(image_folder + '/' + c)
+            all_images.append(image_path + '/' + c)
     return all_images
 
 def get_intermediate_ims(path, stages):

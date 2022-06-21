@@ -74,7 +74,7 @@ pos_tim_interp = i_tim_t + pos_tim(1);
 % find and group trials
 gg=galvoo; gg(gg<-1)=0; % to remove initialization
 aa=[0 diff(galvoo)];
-aa(aa<0.3)=0; % threshold diff(galvoo)
+aa(aa<GALVO_THRESH)=0; % threshold diff(galvoo)
 
 % aa(2)=1;
 [~,locs] = findpeaks(aa); % find the frames

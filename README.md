@@ -139,6 +139,8 @@ my_harness.show_live_view()
 ```
 Close the window to regain control of the shell.
 
+Warning: if you start an imaging request _after_ starting imaging on the microscope, there's no guarantee that your data will be aligned. It's easier to have the harness query for images before starting imaging, as the start of the recording will then align to the start of imaging data.
+
 ### Testing connectivity to LabView
 
 In order to send data to LabView, we need to tell the harness the IP address of the machine running LabView.
