@@ -4,6 +4,7 @@ from reticade.decoding import dummy_decoder
 from reticade.decoding import movement_controller
 from reticade.decoding import svm_decoder
 from reticade.decoding import motion_correction
+import numpy as np
 import logging
 import time
 
@@ -29,16 +30,17 @@ class DecoderPipeline:
     def __init__(self, pipeline, instrumented_stages=[]):
         self.pipeline_stages = pipeline
         self.instrumented_stages = instrumented_stages
-        self.instrumentation_history = []
+        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages + 1))]
 
     def decode(self, input):
         next_stage_input = input
-        instrumented_frame = [time.perf_counter]
+        self.instrumentation_history[0].append(time.perf_counter)
+        stages_recorded = 1
         for i, step in enumerate(self.pipeline_stages):
             next_stage_input = step.process(next_stage_input)
             if i in self.instrumented_stages:
-                instrumented_frame.append(next_stage_input)
-        self.instrumentation_history.append(instrumented_frame)
+                self.instrumentation_history[stages_recorded].append(next_stage_input)
+                stages_recorded += 1
 
         return next_stage_input
 
@@ -64,12 +66,14 @@ class DecoderPipeline:
         logging.info(f"Wrote decoder to: {out_file}")
 
     def clear_instrumentation(self):
-        self.instrumentation_history = []
+        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages + 1))]
 
     def write_instrumented_stages(self, out_file):
         if not self.instrumented_stages:
             return
-        with open(out_file, 'w') as file:
-            for row in self.instrumentation_history:
-                file.write((',').join([str(element) for element in row]) + "\n")
+        with open(out_file, 'wb') as file:
+            for instrumented_stage in self.instrumentation_history:
+                as_array = np.array(instrumented_stage)
+                np.save(file, as_array)
         logging.info(f"Wrote instrumented debugger stages to {out_file}")
+        self.clear_instrumentation()
