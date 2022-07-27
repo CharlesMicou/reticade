@@ -197,16 +197,15 @@ Reticade expects the training data folder to be structured as follows:
 training_folder
 │   positions.csv
 │   metadata.txt
-└───images
-│   │   0.tif
-│   │   1.tif
-│   │   ...
+│   0.tif
+│   1.tif
+│   ...
 ```
 
 Where:
 * `positions.csv` contains N positions on the linear track, one per line, arranged in chronological order.
 * `metadata.txt` contains additional information about the data (e.g. which animal, the date, the training protocol) that will be attached to the decoder.
-* `images` is a folder of N images, the alphabetical sorting of which yields the images in chronological order.
+* `.tif` files are N images, the alphabetical sorting of which yields the images in chronological order.
 
 ### Fine-tuning decoder training
 

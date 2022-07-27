@@ -22,7 +22,7 @@ LABVIEW_REFRESH_RATE_HZ = 50.0
 
 
 def get_image_paths(path_in):
-    image_folder = path_in + '/images'
+    image_folder = path_in
     contents = os.listdir(image_folder)
     contents.sort()
     all_images = []
