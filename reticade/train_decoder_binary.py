@@ -12,11 +12,13 @@ import numpy as np
 import time
 
 # Todo(charlie): parameterise these constants
-MAX_POS_VALUE = 900.0
+MAX_POS_VALUE = 400.0
 MIN_LAP_VALUE = 50.0
 MIN_SAMPLES_PER_LAP = 20
 SAMPLE_RATE_HZ = 30
-NUM_CLASSES = 9
+
+REWARD_POSITION = 250.0
+REWARD_ZONE_WIDTH = 50.0
 
 LABVIEW_REFRESH_RATE_HZ = 50.0
 
@@ -42,9 +44,14 @@ def get_positions(path_in):
     return np.array(positions)
 
 
-def positions_to_uniform_classes(positions):
-    bin_size = MAX_POS_VALUE / NUM_CLASSES
-    return (positions / bin_size).astype(int)
+def positions_to_classes(positions):
+    classes = np.zeros_like(positions)
+    reward_min = REWARD_POSITION - REWARD_ZONE_WIDTH / 2
+    reward_max = REWARD_POSITION + REWARD_ZONE_WIDTH / 2
+    for i, p in enumerate(positions):
+        if reward_min < p and p < reward_max:
+            classes[i] = 1
+    return classes.astype(int)
 
 
 def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
@@ -86,28 +93,24 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     positions = get_positions(path_in)
     training_positions, training_images, test_positions, test_images = behavioural.concat_valid_laps(
         positions, post_sig_proc, MIN_LAP_VALUE, MAX_POS_VALUE, MIN_SAMPLES_PER_LAP, withheld_fraction)
-    classes = positions_to_uniform_classes(training_positions)
+    classes = positions_to_classes(training_positions)
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(
         training_images, classes)
 
     if test_positions.size > 0:
-        test_classes = positions_to_uniform_classes(test_positions)
-        tolerances = [0, 1, 2, 3, 4]
-        test_results = [decoder.score(test_images, test_classes, tolerance) for tolerance in tolerances]
-        printable = ", ".join([f"{x:.3f}" for x in test_results])
+        test_classes = positions_to_classes(test_positions)
+        test_result = decoder.score(test_images, test_classes, 0)
         train_result = decoder.score(training_images, classes, 0)
-        print(f"Training score: {train_result:.3f}, Test score: {printable} [k = 0->4]. Laps withheld: {(withheld_fraction * 100):.1f}%")
+        print(f"Training score: {train_result:.3f}, Test score: {test_result:.3f}. Laps withheld: {(withheld_fraction * 100):.1f}%")
     else:
         print(f"Sanity check: score on training data {decoder.score(training_images, classes, 0):.3f}")
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
-    controller = movement_controller.ClassMovementController.from_training_data(
-        training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
-    # Note(charlie): replace the controller with a stereotyped, fake version here
-    controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
+    # Note(charlie): force velocities to 'work' in reward region.
+    controller = movement_controller.ClassMovementController([80, 20], 30)
 
     # Note(charlie): Labview running at 50 Hz means we need to divide this by 50
     output_scaler = sig_proc.OutputScaler(1.0 / LABVIEW_REFRESH_RATE_HZ)
@@ -129,15 +132,15 @@ if __name__ == '__main__':
     path_in = sys.argv[1]
     decoder_output_folder = None
     withheld_fraction = 0
-    cache_images_filename = None
+    cache_images_fn = None
     if len(sys.argv) > 2:
         decoder_output_folder = sys.argv[2]
     if len(sys.argv) > 3:
         withheld_fraction = float(sys.argv[3])
     if len(sys.argv) > 4:
-        cache_images_filename = sys.argv[4]
+        cache_images_fn = sys.argv[4]
     print(f"[start] Training decoder with default settings from {path_in}")
-    decoder = train_decoder(path_in, withheld_fraction=withheld_fraction, cache_images=cache_images_filename)
+    decoder = train_decoder(path_in, withheld_fraction=withheld_fraction, cache_images=cache_images_fn)
     datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     prefix = 'decoder-'
     if decoder_output_folder:
