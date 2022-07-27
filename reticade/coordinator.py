@@ -50,7 +50,6 @@ class Coordinator:
         if self.decoder == None:
             return
         self.decoder.write_instrumented_stages(out_file)
-        self.decoder.clear_instrumentation()
 
     def close(self):
         if self.controller != None:

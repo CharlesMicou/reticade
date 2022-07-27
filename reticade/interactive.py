@@ -90,7 +90,7 @@ class Harness:
         else:
             self._run_unix(stop_after_seconds)
         datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
-        out_file = 'output-' + datestring + '.csv'
+        out_file = 'output-' + datestring + '.npy'
         self.coordinator.dump_instrumentation_data(out_file)
 
     def _run_unix(self, stop_after_seconds):
