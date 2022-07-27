@@ -110,7 +110,7 @@ class DeltaFFilter:
         x_dim = int(json_params['x_dim'])
         y_dim = int(json_params['y_dim'])
         initial_state = serial.obj_from_picklestring(json_params['initial_state'])
-        return DeltaFFilter(fast_alpha, slow_alpha, (x_dim, y_dim))
+        return DeltaFFilter(fast_alpha, slow_alpha, (x_dim, y_dim), initial_state=initial_state)
 
     def to_json(self):
         if self.reference_image is None:

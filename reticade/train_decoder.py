@@ -127,11 +127,11 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
 
 if __name__ == '__main__':
     path_in = sys.argv[1]
-    folder = None
+    decoder_output_folder = None
     withheld_fraction = 0
     cache_images_fn = None
     if len(sys.argv) > 2:
-        folder = sys.argv[2]
+        decoder_output_folder = sys.argv[2]
     if len(sys.argv) > 3:
         withheld_fraction = float(sys.argv[3])
     if len(sys.argv) > 4:
@@ -140,8 +140,8 @@ if __name__ == '__main__':
     decoder = train_decoder(path_in, withheld_fraction=withheld_fraction, cache_images=cache_images_filename)
     datestring = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     prefix = 'decoder-'
-    if folder:
-        prefix = folder + '/' + prefix
+    if decoder_output_folder:
+        prefix = decoder_output_folder + '/' + prefix
     filename = prefix + datestring + '.json'
     decoder.to_json(filename)
     print(f"[end] Wrote decoder to {filename}")
