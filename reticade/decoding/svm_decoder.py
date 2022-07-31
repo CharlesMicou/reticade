@@ -14,7 +14,9 @@ class SvmClassifier:
         self.underlying_decoder = underlying_decoder
 
     def process(self, raw_input):
-        return self.underlying_decoder.predict(raw_input)
+        # Note(charlie): explicitly reshape to indicate that this is a single sample
+        decoded_result = self.underlying_decoder.predict(raw_input.reshape(1, -1))
+        return decoded_result[0]
 
     def from_training_data(cell_data, classes, c=1.0, max_iterations=10000):
         # Note(charlie): l2 reg seemed to take a much longer time to solve/fails to converge

@@ -30,7 +30,7 @@ class DecoderPipeline:
     def __init__(self, pipeline, instrumented_stages=[]):
         self.pipeline_stages = pipeline
         self.instrumented_stages = instrumented_stages
-        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages + 1))]
+        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages) + 1)]
 
     def decode(self, input):
         next_stage_input = input

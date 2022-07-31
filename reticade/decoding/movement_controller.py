@@ -52,7 +52,7 @@ class ClassMovementController:
         return ClassMovementController(median_velocity_by_class, max_acceleration)
 
     def process(self, raw_input):
-        assert(type(raw_input) == int)
+        assert(type(raw_input) == int or type(raw_input) == np.int64)
         decoded_velocity = self.median_velocity_by_class[raw_input]
 
         # Special case: no historical data
