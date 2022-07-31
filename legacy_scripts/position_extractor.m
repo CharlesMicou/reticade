@@ -4,8 +4,8 @@
 
 
 clearvars;
-GAVLO_THRESH = 0.1; % EDITME
-frame_averaging = 2; % EDITME
+GALVO_THRESH = 0.1; % EDITME
+frame_averaging = 1; % EDITME
 pos_file = '<>_pos.bin'; % EDITME
 adat_file = '<>_adat.bin'; % EDITME
 
@@ -152,7 +152,7 @@ for ii = 1:length(good_trials)
     %[hgh, kur_frames] = findpeaks(galvoo_piece,'MinPeakHeight',0.6,'MinPeakDistance',30);
     
 
-    [hgh, kur_frames] = findpeaks(galvoo_piece,'MinPeakHeight',GAVLO_THRESH,'MinPeakDistance',30);
+    [hgh, kur_frames] = findpeaks(galvoo_piece,'MinPeakHeight',GALVO_THRESH,'MinPeakDistance',30);
     
     frams(ii) = length(hgh);
     fram_poses(ii,1:length(hgh)) = kur_frames;
@@ -235,6 +235,7 @@ catch
     keyboard
 end
 
+% Note(charlie): older versions of MATLAB use csvwrite.
 writematrix(pos1, 'pos_trial_1.csv')
 writematrix(pos2, 'pos_trial_2.csv')
 writematrix(pos3, 'pos_trial_3.csv')

@@ -66,7 +66,7 @@ class DecoderPipeline:
         logging.info(f"Wrote decoder to: {out_file}")
 
     def clear_instrumentation(self):
-        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages + 1))]
+        self.instrumentation_history = [[] for _ in range(len(self.instrumented_stages) + 1)]
 
     def write_instrumented_stages(self, out_file):
         if not self.instrumented_stages:
