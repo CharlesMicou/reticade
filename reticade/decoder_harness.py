@@ -34,7 +34,7 @@ class DecoderPipeline:
 
     def decode(self, input):
         next_stage_input = input
-        self.instrumentation_history[0].append(time.perf_counter)
+        self.instrumentation_history[0].append(time.perf_counter())
         stages_recorded = 1
         for i, step in enumerate(self.pipeline_stages):
             next_stage_input = step.process(next_stage_input)
