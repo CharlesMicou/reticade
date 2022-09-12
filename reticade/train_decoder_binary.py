@@ -72,7 +72,7 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     motion = motion_correction.FlowMotionCorrection(reference_image)
     delta = sig_proc.DeltaFFilter(
         0.3, 0.001, (128, 128), initial_state=reference_image)
-    dog = sig_proc.DoGFilter(1, 5)
+    dog = sig_proc.DoGFilter(0.5, 2.5)
     second_downsampler = sig_proc.Downsampler((4, 4))
     threshold = sig_proc.Threshold(0)
     flat = sig_proc.Flatten()

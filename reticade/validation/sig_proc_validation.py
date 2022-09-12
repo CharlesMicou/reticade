@@ -18,7 +18,7 @@ def get_image_paths(image_path):
     contents.sort()
     all_images = []
     for c in contents:
-        if '.tif' in c:
+        if '.tif' in c and c[0] != '.':
             all_images.append(image_path + '/' + c)
     return all_images
 
@@ -35,6 +35,9 @@ def get_intermediate_ims(path, stages):
     return np.array(results)
 
 path_in = sys.argv[1]
+save_file = None
+if len(sys.argv) > 2:
+    save_file = sys.argv[2]
 
 downsampler = sig_proc.Downsampler((4, 4))
 low_pass = sig_proc.LowPassFilter(1.2)
@@ -43,7 +46,7 @@ correction_ref = get_intermediate_ims(path_in, [downsampler, low_pass]).mean(axi
 correction = motion_correction.FlowMotionCorrection(correction_ref)
 delta = sig_proc.DeltaFFilter(0.3, 0.001, (128, 128), initial_state=correction_ref)
 second_downsammpler = sig_proc.Downsampler((4, 4))
-dog = sig_proc.DoGFilter(1, 5)
+dog = sig_proc.DoGFilter(0.5, 2.5)
 threshold = sig_proc.Threshold(0)
 sig_proc_pipeline = [downsampler, low_pass, correction, delta, dog, threshold, second_downsammpler]
 processed_ims = [[] for _ in range(len(sig_proc_pipeline) + 1)] # First is raw image
@@ -99,4 +102,8 @@ def update(idx):
         imref.set_data(processed_ims[i][idx])
 
 ani = animation.FuncAnimation(fig, update, range(NUM_FRAMES_TO_VIEW), interval=33)
-plt.show()
+
+if save_file:
+    ani.save('XM036-2x-res-pmt-680-041.mp4', fps=30)
+else:
+    plt.show()
