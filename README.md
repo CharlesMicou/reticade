@@ -100,9 +100,40 @@ This will run a quick sanity-check to test self-contained components. It won't t
 python3 -m pytest -W ignore::DeprecationWarning
 ```
 
-## Using Reticade Interactively
+## Using the Standalone Imaging Tool
+
+This standalone program retrieves image data through PrairieLink and can trigger the acquisition of timeseries or live viewing. In order for it to retrieve data, the PrairieView software must be running on the machine. It's essential that the version of PrairieView is 5.6 (earlier versions lack the APIs to retrieve raw data quickly enough).
 
 From within the virtual environment, and from within the root directory, start up a Python shell with the `python` command on Windows (or `python3` on Linux/OSX).
+
+Import the standalone link module:
+``` python3
+from reticade import sapv_link
+```
+
+Create a standalone link object:
+``` python3
+imaging = sapv_link.StandaloneImager()
+```
+
+To acquire timeseries, using the already current configuration in PrairieView, call:
+``` python3
+imaging.run_timeseries(<TIME IN SECONDS>)
+```
+
+To populate the contents of the imaging link without saving a timeseries, use live mode instead:
+```python3
+imaging.run_liveview(<TIME IN SECONDS>)
+```
+
+When done using the imaging tool, remember to release the resources with:
+```python3
+imaging.close()
+```
+
+## Using Reticade Interactively
+
+From within a new terminal in the virtual environment, and from within the root directory, start up a Python shell with the `python` command on Windows (or `python3` on Linux/OSX).
 
 Note: to exit the Python shell and return to the command-line simply enter the `exit()` command.
 
@@ -120,11 +151,10 @@ This harness serves as the main interaction point.
 
 ### Testing connectivity to the microscope
 
-This program retrieves image data through PrairieLink. In order for it to retrieve data, the PrairieView software must be running on the machine. It's essential that the version of PrairieView is 5.6 (earlier versions lack the APIs to retrieve raw data quickly enough).
-To configure access to image data, first set the channel to read from (this example selects channel 2):
+By default, reticade reads from shared memory populated by the standalone imaging tool (above). Once a standalone imaging link object has been created (without the need for it to be currently acquiring images), you can configure reticade to read from this memory with:
 
 ```python3
-my_harness.set_imaging_channel(2)
+my_harness.init_imaging()
 ```
 
 To verify that you are receiving data from the microscope, you can run:
@@ -138,8 +168,6 @@ If you want to view a continuous stream of data from the microscope, instead run
 my_harness.show_live_view()
 ```
 Close the window to regain control of the shell.
-
-Warning: if you start an imaging request _after_ starting imaging on the microscope, there's no guarantee that your data will be aligned. It's easier to have the harness query for images before starting imaging, as the start of the recording will then align to the start of imaging data.
 
 ### Testing connectivity to LabView
 

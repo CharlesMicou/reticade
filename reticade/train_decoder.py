@@ -12,11 +12,11 @@ import numpy as np
 import time
 
 # Todo(charlie): parameterise these constants
-MAX_POS_VALUE = 900.0
+MAX_POS_VALUE = 400.0
 MIN_LAP_VALUE = 50.0
 MIN_SAMPLES_PER_LAP = 20
 SAMPLE_RATE_HZ = 30
-NUM_CLASSES = 9
+NUM_CLASSES = 10
 
 LABVIEW_REFRESH_RATE_HZ = 50.0
 
@@ -107,16 +107,17 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
         training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
     # Note(charlie): replace the controller with a stereotyped, fake version here
-    controller = movement_controller.ClassMovementController([30, 65, 85, 100, 85, 65, 30, 15, 45], 50)
+    stereotyped_velocities = [20, 28, 35, 28, 15, 10, 4, 20, 25, 25]
+    controller = movement_controller.ClassMovementController(stereotyped_velocities, 80)
 
     # Note(charlie): Labview running at 50 Hz means we need to divide this by 50
     output_scaler = sig_proc.OutputScaler(1.0 / LABVIEW_REFRESH_RATE_HZ)
     pipeline = [downsampler, low_pass, motion, delta, dog, threshold,
                 second_downsampler, flat, decoder, controller, output_scaler]
 
-    # Record the output of the classifier and the controller
+    # Record the input and output of the classifier and the controller
     indices_to_instrument = []
-    names_to_instrument = ["Classifier", "Controller"]
+    names_to_instrument = ["Flatten", "Classifier", "Controller"]
     for i, stage in enumerate(pipeline):
         stage_name = type(stage).__name__
         if any(s in stage_name for s in names_to_instrument):

@@ -14,8 +14,9 @@ that the raw data stream parsed by SharedMemImagingLink is working.
 
 
 class ImagingLink:
-    def __init__(self, channel_number):
-        self.channel_number = channel_number
+    def __init__(self):
+        # Channel is 2 for our purposes. Parameterise if this ever changes.
+        self.channel_number = 2
         self.prairie_link = win32com.client.Dispatch("PrairieLink.Application")
         self.prairie_link.Connect()
 
@@ -66,6 +67,13 @@ class SharedMemImagingLink:
             self.num_samples_to_request, dtype=np.int16, buffer=self.memory_block.buf)
         # Force-fill the array on creation so it's not populated by garbage in memory
         self.shared_array.fill(0)
+
+        success = self.prairie_link.SendScriptCommands("-lbs True 0")
+        if not success:
+            logging.error(
+                "Failed to disable PrairieView's GSDMA Buffer, streaming will be slow")
+        else:
+            logging.info("GSDMA Buffer successfully disabled. Fast stream on.")
 
         # Kindly ask PrairieView to write there for us
         success = self.prairie_link.SendScriptCommands('-srd True')
