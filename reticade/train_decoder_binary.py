@@ -110,7 +110,7 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
 
     # Note(charlie): force velocities to 'work' in reward region.
-    controller = movement_controller.ClassMovementController([80, 20], 30)
+    controller = movement_controller.ClassMovementController([30, 5], 30)
 
     # Note(charlie): Labview running at 50 Hz means we need to divide this by 50
     output_scaler = sig_proc.OutputScaler(1.0 / LABVIEW_REFRESH_RATE_HZ)

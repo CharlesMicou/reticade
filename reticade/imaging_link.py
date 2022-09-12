@@ -1,6 +1,7 @@
 import numpy as np
 from multiprocessing import shared_memory
 
+IMAGING_LINK_MEMSHARE_NAME = "reticade-memshare"
 
 class ImagingLink:
     """
