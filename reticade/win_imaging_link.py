@@ -67,6 +67,13 @@ class SharedMemImagingLink:
         # Force-fill the array on creation so it's not populated by garbage in memory
         self.shared_array.fill(0)
 
+        success = self.prairie_link.SendScriptCommands("-lbs True 0")
+        if not success:
+            logging.error(
+                "Failed to disable PrairieView's GSDMA Buffer, streaming will be slow")
+        else:
+            logging.info("GSDMA Buffer successfully disabled. Fast stream on.")
+
         # Kindly ask PrairieView to write there for us
         success = self.prairie_link.SendScriptCommands('-srd True')
         if not success:
