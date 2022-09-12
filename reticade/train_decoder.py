@@ -115,9 +115,9 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     pipeline = [downsampler, low_pass, motion, delta, dog, threshold,
                 second_downsampler, flat, decoder, controller, output_scaler]
 
-    # Record the output of the classifier and the controller
+    # Record the input and output of the classifier and the controller
     indices_to_instrument = []
-    names_to_instrument = ["Classifier", "Controller"]
+    names_to_instrument = ["Flatten", "Classifier", "Controller"]
     for i, stage in enumerate(pipeline):
         stage_name = type(stage).__name__
         if any(s in stage_name for s in names_to_instrument):

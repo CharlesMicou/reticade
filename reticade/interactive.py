@@ -17,6 +17,10 @@ if platform.system() == 'Windows':
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
 
+IMAGE_MODE_MULTITHREAD = 'multithread'
+IMAGE_MODE_SEQUENTIAL = 'sequential'
+IMAGE_MODE_SLOW = 'slow'
+valid_imaging_formats = [IMAGE_MODE_MULTITHREAD, IMAGE_MODE_SEQUENTIAL, IMAGE_MODE_SLOW]
 
 class Harness:
     def __init__(self, tick_interval_s=1/30):
@@ -32,14 +36,24 @@ class Harness:
         else:
             logging.error("Couldn't determine operating system.")
 
-    def set_imaging_channel(self, channel_number):
-        if self.is_windows:
-            imaging = reticade.win_imaging_link.SharedMemImagingLink(channel_number)
+    def init_imaging(self, image_mode=IMAGE_MODE_MULTITHREAD):
+        if image_mode != IMAGE_MODE_MULTITHREAD and not self.is_windows:
+            logging.error("Sequential image mode is only supported on windows")
+            return
+
+        if image_mode == IMAGE_MODE_SLOW:
+            imaging = reticade.win_imaging_link.ImagingLink()
+            self.coordinator.set_imaging(imaging)
+        elif image_mode == IMAGE_MODE_SEQUENTIAL:
+            imaging = reticade.win_imaging_link.SharedMemImagingLink(image_mode)
+            self.coordinator.set_imaging(imaging)
+        elif image_mode == IMAGE_MODE_MULTITHREAD:
+            imaging = reticade.imaging_link.ImagingLink((512, 512))
+            imaging = reticade.win_imaging_link.SharedMemImagingLink(image_mode)
             self.coordinator.set_imaging(imaging)
         else:
-            imaging = reticade.imaging_link.ImagingLink((512, 512))
-            self.coordinator.set_imaging(imaging)
-        logging.info(f"Set imaging channel to {channel_number}")
+            logging.error(f"Unknown imaging mode {image_mode}. Valid options: {valid_imaging_formats}")
+        logging.info(f"Set imaging channel to {image_mode}")
 
     def show_raw_image(self):
         image = self.coordinator.get_debug_image()

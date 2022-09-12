@@ -8,6 +8,8 @@ GALVO_THRESH = 0.1; % EDITME
 frame_averaging = 1; % EDITME
 pos_file = '<>_pos.bin'; % EDITME
 adat_file = '<>_adat.bin'; % EDITME
+trial_frames = [1234]; % EDITME
+good_trials = [1]; % EDITME 
 
 fsz = dir(adat_file);
 fr_size = 16 + 4 + 4 + 1000*8; % timestamp(16bytes) + LV timer (4 bytes) + length of data frame (4 bytes, always equal to 1000) + 1000 x galvo data (8 bytes)
@@ -16,6 +18,7 @@ kiek_frames = fsz.bytes/fr_size; % how many frames in the file
 galvoo = zeros(1,kiek_frames*1000); % variable for galvo signal
 galvoo_time = zeros(1,kiek_frames*1000);
 fileDAT = fopen(adat_file);
+
 
 for i = 1:kiek_frames
     % The first 8 bytes represent seconds since 1/1/1904 midnight GMT.  The second 8 bytes is a 2^64 bit fraction of a second.
@@ -134,8 +137,6 @@ fprintf('  \n')
 
 keyboard
 
-good_trials = [3 4 5 6];
-
 
 trial_starts = [pradzios(good_trials)];
 trial_ends = [pabaigos(good_trials)];
@@ -189,57 +190,31 @@ for ii = 1:length(good_trials)
     
 end
 
-trial_frames = [8824 8824 8824 8824];
-
 
 tf=cumsum(trial_frames);
 
 %unroll positions
 mean_pos1 = mean_pozicijos{1};
-mean_pos2 = mean_pozicijos{2};
-mean_pos3 = mean_pozicijos{3};
-mean_pos4 = mean_pozicijos{4};
 
 mean_posb1=[];
-mean_posb2=[];
-mean_posb3=[];
-mean_posb4=[];
 if frame_averaging == 1
     mean_posb1 = mean_pos1;
-    mean_posb2 = mean_pos2;
-    mean_posb3 = mean_pos3;
-    mean_posb4 = mean_pos4;
 else
     for jj = 1:floor(length(mean_pos1)/frame_averaging)
         mean_posb1(jj) = mean(mean_pos1(((jj-1)*frame_averaging+1):((jj)*frame_averaging)));        
-    end
-    for jj = 1:floor(length(mean_pos2)/frame_averaging)
-        mean_posb2(jj) = mean(mean_pos2(((jj-1)*frame_averaging+1):((jj)*frame_averaging)));        
-    end
-    for jj = 1:floor(length(mean_pos3)/frame_averaging)
-        mean_posb3(jj) = mean(mean_pos3(((jj-1)*frame_averaging+1):((jj)*frame_averaging)));        
-    end
-    for jj = 1:floor(length(mean_pos4)/frame_averaging)
-        mean_posb4(jj) = mean(mean_pos4(((jj-1)*frame_averaging+1):((jj)*frame_averaging)));        
     end
 end
 
 
 try
     pos1=mean_posb1(1:trial_frames(1));
-    pos2=mean_posb2(1:trial_frames(2));
-    pos3=mean_posb3(1:trial_frames(3));
-    pos4=mean_posb4(1:trial_frames(4));
 catch
     disp('Could not truncate')
     keyboard
 end
 
 % Note(charlie): older versions of MATLAB use csvwrite.
-writematrix(pos1, 'pos_trial_1.csv')
-writematrix(pos2, 'pos_trial_2.csv')
-writematrix(pos3, 'pos_trial_3.csv')
-writematrix(pos4, 'pos_trial_4.csv')
+writematrix(pos1, 'positions.csv')
 
 
 

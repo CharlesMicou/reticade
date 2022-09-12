@@ -14,8 +14,9 @@ that the raw data stream parsed by SharedMemImagingLink is working.
 
 
 class ImagingLink:
-    def __init__(self, channel_number):
-        self.channel_number = channel_number
+    def __init__(self):
+        # Channel is 2 for our purposes. Parameterise if this ever changes.
+        self.channel_number = 2
         self.prairie_link = win32com.client.Dispatch("PrairieLink.Application")
         self.prairie_link.Connect()
 
