@@ -20,7 +20,10 @@ logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
 IMAGE_MODE_MULTITHREAD = 'multithread'
 IMAGE_MODE_SEQUENTIAL = 'sequential'
 IMAGE_MODE_SLOW = 'slow'
-valid_imaging_formats = [IMAGE_MODE_MULTITHREAD, IMAGE_MODE_SEQUENTIAL, IMAGE_MODE_SLOW]
+valid_imaging_formats = [IMAGE_MODE_MULTITHREAD,
+                         IMAGE_MODE_SEQUENTIAL, IMAGE_MODE_SLOW]
+
+DEFAULT_LINK_IP = "131.111.32.44"
 
 class Harness:
     def __init__(self, tick_interval_s=1/30):
@@ -45,14 +48,15 @@ class Harness:
             imaging = reticade.win_imaging_link.ImagingLink()
             self.coordinator.set_imaging(imaging)
         elif image_mode == IMAGE_MODE_SEQUENTIAL:
-            imaging = reticade.win_imaging_link.SharedMemImagingLink(image_mode)
+            imaging = reticade.win_imaging_link.SharedMemImagingLink(
+                image_mode)
             self.coordinator.set_imaging(imaging)
         elif image_mode == IMAGE_MODE_MULTITHREAD:
             imaging = reticade.imaging_link.ImagingLink((512, 512))
-            imaging = reticade.win_imaging_link.SharedMemImagingLink(image_mode)
             self.coordinator.set_imaging(imaging)
         else:
-            logging.error(f"Unknown imaging mode {image_mode}. Valid options: {valid_imaging_formats}")
+            logging.error(
+                f"Unknown imaging mode {image_mode}. Valid options: {valid_imaging_formats}")
         logging.info(f"Set imaging channel to {image_mode}")
 
     def show_raw_image(self):
@@ -69,7 +73,7 @@ class Harness:
             plt.imshow(image)
             plt.show()
 
-    def set_link_ip(self, ip_addr, port=7777):
+    def set_link_ip(self, ip_addr=DEFAULT_LINK_IP, port=7777):
         logging.info(f"Setting target to port {port} on address {ip_addr}")
         udp_connection = reticade.udp_controller_link.UdpControllerLink(
             ip_addr, port)
@@ -83,7 +87,8 @@ class Harness:
             time.sleep(0.5)
 
     def load_decoder(self, path_to_decoder):
-        decoder = reticade.decoder_harness.DecoderPipeline.from_json(path_to_decoder)
+        decoder = reticade.decoder_harness.DecoderPipeline.from_json(
+            path_to_decoder)
         self.coordinator.set_decoder(decoder)
         logging.info(f"Loaded decoder from {path_to_decoder}")
 
@@ -165,7 +170,8 @@ class Harness:
                 frames_in_interval = 0
                 worst_frame_time = 0
 
-            next_frame_start = max(time.perf_counter(), next_frame_start + self.tick_interval_s)
+            next_frame_start = max(time.perf_counter(),
+                                   next_frame_start + self.tick_interval_s)
 
         logging.info(
             f"Finished after {(time.perf_counter() - start_time):.3f} seconds")
@@ -184,23 +190,23 @@ class Harness:
         if image is not None:
             self.imref.set_data(image)
         end = time.perf_counter()
-        logging.info(f"Full image fetch took {((end - start) * 1000):.1f}ms")
 
     def show_live_view(self):
         image = self.coordinator.get_debug_image()
         if image is None:
             logging.warn("Can't render live image: imaging not configured.")
             return
-        
+
         fig, ax = plt.subplots()
         self.imref = ax.imshow(image, vmin=0, vmax=8192)
         ax.set_title("Reticade Live View")
         fig.colorbar(self.imref, ax=ax)
         interval_ms = int(self.tick_interval_s * 1000)
-        anim = animation.FuncAnimation(fig, self._live_animate, range(100), interval=interval_ms)
-        logging.info(f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
+        anim = animation.FuncAnimation(
+            fig, self._live_animate, range(100), interval=interval_ms)
+        logging.info(
+            f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
         plt.show()
-
 
     def close(self):
         self.coordinator.close()

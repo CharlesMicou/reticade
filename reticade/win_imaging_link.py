@@ -68,7 +68,7 @@ class SharedMemImagingLink:
         # Force-fill the array on creation so it's not populated by garbage in memory
         self.shared_array.fill(0)
 
-        success = self.prairie_link.SendScriptCommands("-lbs True 0")
+        success = self.prairie_link.SendScriptCommands("-lbs True 1")
         if not success:
             logging.error(
                 "Failed to disable PrairieView's GSDMA Buffer, streaming will be slow")
@@ -104,22 +104,23 @@ class SharedMemImagingLink:
 
                 self.frame_storage[self.frame_idx][self.mem_offset:self.mem_offset +
                                                    samples_to_read] = self.shared_array[samples_copied:samples_copied + samples_to_read]
-                self.mem_offset = (
-                    self.mem_offset + samples_to_read) % self.num_samples_per_frame
-                samples_copied += samples_to_read
 
                 if samples_to_read == self.num_samples_per_frame - self.mem_offset:
                     # we've got a complete frame, so swap current frame and pending frame
                     waiting_for_new_frame = False
                     self.frame_idx = (self.frame_idx + 1) % 2
 
+                self.mem_offset = (
+                    self.mem_offset + samples_to_read) % self.num_samples_per_frame
+                samples_copied += samples_to_read
+
         reshaped = self.frame_storage[(
             self.frame_idx + 1) % 2].reshape(self.data_layout)
 
         # Note(charlie): this subtraction of 8192 is at the suggestion of the 
         # PrairieView engineer to duplicate their behaviour. It needs validating.
-        reshaped[reshaped < 8192] = 0
         reshaped = reshaped - 8192
+        reshaped[reshaped < 0] = 0
         mean_over_samples = np.mean(reshaped, axis=2)
         return self._unraster_image(mean_over_samples)
 

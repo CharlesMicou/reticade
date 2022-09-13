@@ -4,13 +4,14 @@ from multiprocessing import shared_memory
 import logging
 import os
 import ctypes
-import imaging_link
+import reticade.imaging_link
 import time
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
 
 FRAME_RATE_REPORT_INTERVAL_S = 10
+
 
 class StandaloneImager:
     def __init__(self, image_size=(512, 512), max_frames_to_buffer=30):
@@ -60,18 +61,20 @@ class StandaloneImager:
 
         # Configure some shared memory for the decoder
         output_size = 8 * image_size[0] * image_size[1]
-        self.output_sharedmem = shared_memory.SharedMemory(name=imaging_link.IMAGING_LINK_MEMSHARE_NAME,
+        self.output_sharedmem = shared_memory.SharedMemory(name=reticade.imaging_link.IMAGING_LINK_MEMSHARE_NAME,
                                                            create=True, size=output_size)
         self.output_array = np.ndarray(
             (image_size[0], image_size[1]), dtype=np.float64, buffer=self.output_sharedmem.buf)
         self._reset_imaging_state()
-        logging.info("Standalone Link ready: reticade can now access shared memory")
+        logging.info(
+            "Standalone Link ready: reticade can now access shared memory")
 
     def run_timeseries(self, duration_s):
         self._pre_run()
         success = self.prairie_link.SendScriptCommands("-ts")
         if success:
-            logging.info(f"Timeseries started. Streaming will run for {duration_s} seconds")
+            logging.info(
+                f"Timeseries started. Streaming will run for {duration_s} seconds")
         else:
             logging.error("Failed to start timeseries")
             return
@@ -83,7 +86,8 @@ class StandaloneImager:
         self._pre_run()
         success = self.prairie_link.SendScriptCommands("-lv on")
         if success:
-            logging.info(f"Liveview enabled, will run for {duration_s} seconds")
+            logging.info(
+                f"Liveview enabled, will run for {duration_s} seconds")
         else:
             logging.error("Could not enable liveview")
             return
@@ -116,17 +120,21 @@ class StandaloneImager:
             if frame_end > next_report_time:
                 window_length = frame_end - last_report_time
                 rate = interval_frames / window_length
-                logging.info(f"Samples: {interval_frames} frames. Rate: {rate} Hz. Worst frame: {(worst_frame_time * 1000):.2f} ms.")
+                logging.info(
+                    f"Samples: {interval_frames} frames. Rate: {rate:.2f} Hz. Worst frame: {(worst_frame_time * 1000):.2f} ms.")
 
                 interval_frames = 0
+                worst_frame_time = 0
                 last_report_time = frame_end
                 next_report_time = last_report_time + FRAME_RATE_REPORT_INTERVAL_S
 
         true_runtime = time.perf_counter() - start_time
-        logging.info(f"Completed run after {true_runtime:.2f} s. Saw {frames_acquired} frames. Mean rate: {(frames_acquired/true_runtime):.2f} Hz")
+        logging.info(
+            f"Completed run after {true_runtime:.2f} s. Saw {frames_acquired} frames. Mean rate: {(frames_acquired/true_runtime):.2f} Hz")
 
     def _pre_run(self):
-        success = self.prairie_link.SendScriptCommands("-lbs True 0")
+        self._reset_imaging_state()
+        success = self.prairie_link.SendScriptCommands("-lbs True 1")
         if not success:
             logging.error(
                 "Failed to disable PrairieView's GSDMA Buffer, streaming will be slow")
@@ -137,7 +145,8 @@ class StandaloneImager:
         if not success:
             logging.error("Could not set '-dw' flag in PrairieView")
         else:
-            logging.info("PrairieView will accept commands during acquisition.")
+            logging.info(
+                "PrairieView will accept commands during acquisition.")
 
         success = self.prairie_link.SendScriptCommands(
             f"-srd True {self.num_buffered_frames}")
@@ -146,9 +155,7 @@ class StandaloneImager:
         else:
             logging.info("PrairieView streaming mode enabled")
 
-
     def _post_run(self):
-        self._reset_imaging_state()
         dropped_data_check = self.prairie_link.SendScriptCommands("-dd")
         if dropped_data_check:
             logging.warn("PrairieView dropped data during acquisition.")
@@ -187,26 +194,27 @@ class StandaloneImager:
 
                 self.frame_storage[self.frame_idx][self.mem_offset:self.mem_offset +
                                                    samples_to_read] = self.shared_array[samples_copied:samples_copied + samples_to_read]
-                self.mem_offset = (
-                    self.mem_offset + samples_to_read) % self.num_samples_per_frame
-                samples_copied += samples_to_read
 
                 if samples_to_read == self.num_samples_per_frame - self.mem_offset:
                     # we've got a complete frame, so swap current frame and pending frame
                     waiting_for_new_frame = False
                     self.frame_idx = (self.frame_idx + 1) % 2
 
+                self.mem_offset = (
+                    self.mem_offset + samples_to_read) % self.num_samples_per_frame
+                samples_copied += samples_to_read
+
         reshaped = self.frame_storage[(
             self.frame_idx + 1) % 2].reshape(self.data_layout)
 
         # Note(charlie): this subtraction of 8192 is at the suggestion of the
         # PrairieView engineer to duplicate their behaviour. It needs validating.
-        reshaped[reshaped < 8192] = 0
         reshaped = reshaped - 8192
+        reshaped[reshaped < 0] = 0
         mean_over_samples = np.mean(reshaped, axis=2)
         self._unraster_image(mean_over_samples)
 
-        self.output_array[:,:] = mean_over_samples
+        self.output_array[:, :] = mean_over_samples
 
     def _send_prairieview_rrd(self):
         num_samples_written = self.prairie_link.ReadRawDataStream_3(
