@@ -40,6 +40,10 @@ def make_laps(positions, images, min_lap_value, max_pos_value, min_samples_per_l
         positions_by_lap.append(positions[lap_start_idx:lap_end_idx])
         images_by_lap.append(images[lap_start_idx:lap_end_idx, :])
 
+    # Handle the edge-case of a slightly negative position
+    for p_lap in positions_by_lap:
+        np.clip(p_lap, 0, max_pos_value, out=p_lap)
+
     return positions_by_lap, images_by_lap
 
 

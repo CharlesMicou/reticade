@@ -90,7 +90,7 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(
-        training_images, classes)
+        training_images, classes, c=0.05)
 
     if test_positions.size > 0:
         test_classes = positions_to_uniform_classes(test_positions)
