@@ -21,7 +21,6 @@ class UdpControllerLink:
             # Note(charlie): socket.MSG_DONTWAIT doesn't exist on windows
             self.udp_socket.sendto(payload, self.target)
         except socket.error as err:
-            # Todo(charlie): really need a logger here
             logging.error(f"Network failure. Details:\n{err}")
             assert(False)
 

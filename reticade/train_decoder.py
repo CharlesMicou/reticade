@@ -90,7 +90,7 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
     decoder = svm_decoder.SvmClassifier.from_training_data(
-        training_images, classes, c=0.05)
+        training_images, classes, c=0.2)
 
     if test_positions.size > 0:
         test_classes = positions_to_uniform_classes(test_positions)
@@ -103,11 +103,11 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
         print(f"Sanity check: score on training data {decoder.score(training_images, classes, 0):.3f}")
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
-    controller = movement_controller.ClassMovementController.from_training_data(
-        training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
+    #controller = movement_controller.ClassMovementController.from_training_data(
+    #    training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
     # Note(charlie): replace the controller with a stereotyped, fake version here
-    stereotyped_velocities = [20, 28, 35, 28, 15, 10, 4, 20, 25, 25]
+    stereotyped_velocities = [25, 38, 40, 30, 20, 15, 4, 30, 40, 25]
     controller = movement_controller.ClassMovementController(stereotyped_velocities, 80)
 
     # Note(charlie): Labview running at 50 Hz means we need to divide this by 50

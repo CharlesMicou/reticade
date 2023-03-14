@@ -5,7 +5,7 @@ def get_lap_indices(positions, min_lap_value, max_pos_value, min_samples_per_lap
     lap_start_indices = []
     lap_end_indices = []
     # Only take the first lap if it starts near the beginning of the track
-    first_lap_done = positions[0] < min_lap_value
+    first_lap_done = False
     between_laps = positions[0] > max_pos_value
 
     for i, pos in enumerate(positions):
