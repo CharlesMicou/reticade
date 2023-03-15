@@ -60,7 +60,7 @@ class GatedSvmClassifier:
         # Note(charlie): explicitly reshape to indicate that this is a single sample
         result_proba = self.underlying_decoder.predict_proba(
             raw_input.reshape(1, -1))[0]
-        if result_proba < self.threshold:
+        if result_proba < self.threshold[0]:
             return 0
         decoded_result = self.underlying_decoder.predict(
             raw_input.reshape(1, -1))[0]
