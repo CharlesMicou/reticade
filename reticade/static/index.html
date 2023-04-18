@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>reticade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1,
+        h2,
+        h3 {
+            text-align: left;
+            margin-top: 1rem;
+            margin-left: 2rem;
+        }
+
+        hr {
+            margin: 1rem 0;
+        }
+
+        p {
+            margin-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        button,
+        input[type="submit"] {
+            background-color: #4c63af;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+            margin: 0.5rem;
+            margin-left: 2rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+        }
+
+        button:hover,
+        input[type="submit"]:hover {
+            background-color: #4a3e8e;
+        }
+
+        button:active,
+        input[type="submit"]:active {
+            background-color: #ff0055;
+            transform: translateY(4px);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            margin-left: 2.0rem;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            padding: 0.25rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.5rem;
+            margin-left: 2.0rem;
+            width: 4.0rem;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        input[type="file"] {
+            margin-top: 0.5rem;
+            margin-left: 2.0rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            padding: 0.25rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .connected {
+            color: green;
+        }
+
+        .not-connected {
+            color: red;
+        }
+
+        .warning {
+            color: rgb(171, 80, 0);
+            margin-left: 2.0rem;
+            margin-right: 2.0rem;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>ReTiCaDe {{ version }}</h1>
+
+    <hr>
+    <h2>Labview</h2>
+    <p>
+        {{#if labview_connected}}
+    <h3 class="connected">Connected</h3>
+    <button type="button" onclick="window.location.href='/test_labview'">Send Test Data</button>
+    {{else}} <h3 class="not-connected">Not Connected</h3>
+    <button type="button" onclick="window.location.href='/init_labview'">Connect</button>
+    {{/if}}
+    </p>
+    <hr>
+
+    <h2>PrairieView</h2>
+    <p>
+        {{#if prairieview_connected}}
+    <h3 class="connected">Connected</h3>
+    <button type="button" onclick="window.location.href='/test_prairieview'">Test Imaging</button>
+    {{else}} <h3 class="not-connected">Not Connected</h3>
+    <button type="button" onclick="window.location.href='/init_prairieview'">Connect</button>
+    <br>
+    <span class="warning">Warning: connecting to PrairieView will lock in current imaging settings (e.g. imaging rate,
+        multi-sampling, etc.).</span>
+    <br>
+    <span class="warning">Make sure you are in the correct configuration before connecting.</span>
+    {{/if}}
+    </p>
+    <hr>
+    <h2>Decoder</h2>
+    <p>
+        {{#if decoder}}
+    <h3 class="connected">Current decoder: {{decoder}}</h3>
+    {{else}} <h3 class="not-connected">Current decoder: None</h3>
+    {{/if}}
+    <br>
+    <form action="/load_decoder" method="post">
+        <label for="decoderfile">Load a decoder:</label>
+        <input type="file" id="decoderfile" name="decoderfile" accept=".json" onchange="updateFilePath()">
+        <input type="submit" value="Load">
+    </form>
+    <span class="warning">This <em>must</em> be within the <code>'decoders/'</code> directory within reticade.</span>
+    </p>
+    <hr>
+    <h2>BMI Control</h2>
+    <p>
+    <form action="/run_bmi" method="post">
+        <label for="duration">Session Duration (s)</label>
+        <input type="number" id="duration" name="duration" value="300.0">
+        <input type="submit" value="Start">
+    </form>
+    </p>
+
+</body>
+
+</html>
