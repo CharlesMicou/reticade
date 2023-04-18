@@ -71,6 +71,16 @@
             font-size: 1rem;
         }
 
+        input[type="text"] {
+            padding: 0.25rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.5rem;
+            margin-left: 2.0rem;
+            width: 10.0rem;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
         input[type="file"] {
             margin-top: 0.5rem;
             margin-left: 2.0rem;
@@ -108,7 +118,11 @@
     <h3 class="connected">Connected</h3>
     <button type="button" onclick="window.location.href='/test_labview'">Send Test Data</button>
     {{else}} <h3 class="not-connected">Not Connected</h3>
-    <button type="button" onclick="window.location.href='/init_labview'">Connect</button>
+    <form action="/init_labview" method="post">
+        <label for="ip_addr">LabView PC IP Address</label>
+        <input type="text" id="ip_addr" name="ip_addr" value="131.111.32.44">
+        <input type="submit" value="Connect">
+    </form>
     {{/if}}
     </p>
     <hr>
