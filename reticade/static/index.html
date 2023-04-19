@@ -112,6 +112,10 @@
     <h1>ReTiCaDe {{ version }}</h1>
 
     <hr>
+        <h2>Harness {{#if harness_busy}} <span style="color: darkorange;">[BUSY]</span> {{else}} [READY] {{/if}}</h2>
+        <br>
+        <p>Last refreshed {{refresh_time}}, reload page to refresh status.</p>
+    <hr>
     <h2>Labview</h2>
     <p>
         {{#if labview_connected}}
@@ -127,7 +131,7 @@
     </p>
     <hr>
 
-    <h2>PrairieView</h2>
+    <h2>PrairieView {{#if imaging_busy}} <span style="color: darkorange;">[BUSY]</span> {{/if}}</h2>
     <p>
         {{#if prairieview_connected}}
     <h3 class="connected">Connected</h3>
@@ -154,7 +158,7 @@
         <input type="file" id="decoderfile" name="decoderfile" accept=".json" onchange="updateFilePath()">
         <input type="submit" value="Load">
     </form>
-    <span class="warning">This <em>must</em> be within the <code>'decoders/'</code> directory within reticade.</span>
+    <span class="warning">This <em>must</em> be within the <span style="font-family: monospace;">'decoders/'</span> directory within reticade.</span>
     </p>
     <hr>
     <h2>BMI Control</h2>
