@@ -1,17 +1,21 @@
-import ui_server
 import time
-from multiprocessing import Process, Manager, Pipe
-from interprocess_messages import ProcessMessage
 import logging
+import platform
+from multiprocessing import Process, Manager, Pipe
+import reticade.ui_server
+from reticade.interprocess_messages import ProcessMessage
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
 
 def run_flask(harness_pipe, imaging_pipe, shared_dict):
-    app = ui_server.create_flask_app(harness_pipe, imaging_pipe, shared_dict)
+    app = reticade.ui_server.create_flask_app(harness_pipe, imaging_pipe, shared_dict)
     app.run(debug=False)
 
 def run_harness(flask_pipe, shared_dict):
+    shared_dict['harness_busy'] = True
+    from reticade.interactive import Harness
+    harness = Harness()
     while True:
         shared_dict['harness_busy'] = False
         instruction = flask_pipe.recv()
@@ -20,32 +24,36 @@ def run_harness(flask_pipe, shared_dict):
         if instruction_id == ProcessMessage.SEND_CONNECT_LABVIEW:
             labview_ip = instruction[1]
             shared_dict['labview_connected'] = True
-            # TODO: implement me
+            harness.set_link_ip(labview_ip)
             flask_pipe.send((ProcessMessage.ACK_CONNECT_LABVIEW))
         elif instruction_id == ProcessMessage.SEND_TEST_LABVIEW:
-            # TODO: implement me
+            num_fake_packets = instruction[1]
+            test_data = [0 for i in range(num_fake_packets)]
+            harness.test_link(test_data)
             flask_pipe.send((ProcessMessage.ACK_TEST_LABVIEW))
-            pass
+        elif instruction_id == ProcessMessage.SEND_CONNECT_PRAIRIEVIEW:
+            harness.init_imaging()
+            flask_pipe.send((ProcessMessage.ACK_CONNECT_PRAIRIEVIEW))
         elif instruction_id == ProcessMessage.SEND_RUN_BMI:
             duration = instruction[1]
-            # TODO: implement me
-            pass
+            harness.run(stop_after_seconds=duration)
         elif instruction_id == ProcessMessage.SEND_LOAD_DECODER:
             decoder_name = instruction[1]
             shared_dict['decoder'] = decoder_name
-            # TODO: implement me
+            harness.load_decoder(f"decoders/{decoder_name}")
             flask_pipe.send((ProcessMessage.ACK_LOAD_DECODER))
         elif instruction_id == ProcessMessage.SEND_TEST_PRAIRIEVIEW:
-            # TODO: implement me
-            time.sleep(5)
-            pass
+            duration_s = instruction[1]
+            harness.show_live_view(duration=duration_s)
         else:
             logging.error(f"Harness received unexpected instruction: {instruction}")
-            pass
+            
 
 
 
 def run_imaging(flask_pipe, shared_dict):
+    imaging = None
+    import reticade.sapv_link
     while True:
         shared_dict['imaging_busy'] = False
         instruction = flask_pipe.recv()
@@ -53,13 +61,24 @@ def run_imaging(flask_pipe, shared_dict):
         instruction_id = instruction[0]
         if instruction_id == ProcessMessage.SEND_CONNECT_PRAIRIEVIEW:
             shared_dict['prairieview_connected'] = True
-            # TODO: implement me
-            logging.info("Conneting")
+            if platform.system() == 'Windows':
+                imaging = reticade.sapv_link.StandaloneImager()
+            else:
+                imaging = reticade.sapv_link.TestImager()
             flask_pipe.send((ProcessMessage.ACK_CONNECT_PRAIRIEVIEW))
         elif instruction_id == ProcessMessage.SEND_TEST_PRAIRIEVIEW:
-            # TODO: implement me
-            time.sleep(5)
-            pass
+            if imaging is None:
+                logging.error("Request to run liveview when imaging not configured")
+            else:
+                duration_s = instruction[1]
+                imaging.run_liveview(duration_s)
+        elif instruction_id == ProcessMessage.SEND_RUN_BMI:
+            duration_s = instruction[0]
+            if imaging is None:
+                logging.error("Request to run timeseries when imaging not configured")
+            else:
+                duration_s = instruction[1]
+                imaging.run_timeseries(duration_s)
         else:
             logging.error(f"Imaging process received unexpected instruction: {instruction}")
 

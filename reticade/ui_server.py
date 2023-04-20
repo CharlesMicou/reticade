@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, request
 from pybars import Compiler
 from multiprocessing import Pipe
-from interprocess_messages import ProcessMessage
+from reticade.interprocess_messages import ProcessMessage
 import datetime
 import time
 import logging
@@ -54,7 +54,13 @@ def create_flask_app(harness_pipe, imaging_pipe, shared_dict):
             imaging_pipe.send((ProcessMessage.SEND_CONNECT_PRAIRIEVIEW, 0))
             done = imaging_pipe.recv()
             if done != ProcessMessage.ACK_CONNECT_PRAIRIEVIEW:
-                logging.error(f"Expected ACK_CONNECT_PRAIRIEVIEW, received: {done}")
+                logging.error(f"Expected ACK_CONNECT_PRAIRIEVIEW from imaging pipe, received: {done}")
+
+            # Only open the harness connection once the shared memory has been set up
+            harness_pipe.send((ProcessMessage.SEND_CONNECT_PRAIRIEVIEW, 0))
+            done = harness_pipe.recv()
+            if done != ProcessMessage.ACK_CONNECT_PRAIRIEVIEW:
+                logging.error(f"Expected ACK_CONNECT_PRAIRIEVIEW from harness pipe, received: {done}")
         return redirect(url_for('index'))
 
 

@@ -25,6 +25,7 @@ valid_imaging_formats = [IMAGE_MODE_MULTITHREAD,
 
 DEFAULT_LINK_IP = "131.111.32.44"
 
+
 class Harness:
     def __init__(self, tick_interval_s=1/30):
         self.coordinator = reticade.coordinator.Coordinator()
@@ -191,7 +192,7 @@ class Harness:
             self.imref.set_data(image)
         end = time.perf_counter()
 
-    def show_live_view(self):
+    def show_live_view(self, duration=None):
         image = self.coordinator.get_debug_image()
         if image is None:
             logging.warn("Can't render live image: imaging not configured.")
@@ -204,9 +205,16 @@ class Harness:
         interval_ms = int(self.tick_interval_s * 1000)
         anim = animation.FuncAnimation(
             fig, self._live_animate, range(100), interval=interval_ms)
-        logging.info(
-            f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
-        plt.show()
+        logging.info(f"Live-view active. Refreshing at {interval_ms} ms.")
+        if duration:
+            plt.show(block=False)
+            plt.pause(duration)
+            anim.pause()
+            plt.close(plt.gcf())
+            logging.info(
+                f"Disposing plot. If the window is still open, leave it there. It will be reused for future live plots.")
+        else:
+            plt.show()
 
     def close(self):
         self.coordinator.close()

@@ -15,7 +15,7 @@ class ImagingLink:
         memsize_bytes = image_size[0] * \
             image_size[1] * bytes_per_pixel
         self.memory_block = shared_memory.SharedMemory(
-            name="reticade-memshare", create=False, size=memsize_bytes)
+            name=IMAGING_LINK_MEMSHARE_NAME, create=False, size=memsize_bytes)
         self.shared_array = np.ndarray(
             (image_size[0], image_size[1]), dtype=np.float64, buffer=self.memory_block.buf)
         # Force-fill the array on creation so it's not populated by garbage in memory
