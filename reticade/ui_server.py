@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
 
-def create_flask_app(harness_pipe, imaging_pipe, shared_dict):
+def create_flask_app(harness_pipe, imaging_pipe, udp_rx_pipe, shared_dict):
     with open('reticade/static/index.html', 'r') as f:
         html_template = f.read()
     compiler = Compiler()
@@ -35,11 +35,16 @@ def create_flask_app(harness_pipe, imaging_pipe, shared_dict):
         elif shared_dict['harness_busy'] == True:
             logging.warn("Harness is busy, ignoring request")
         else:
-            instruction = (ProcessMessage.SEND_CONNECT_LABVIEW, labview_ip_addr)
-            harness_pipe.send(instruction)
+            instruction_1 = (ProcessMessage.SEND_CONNECT_LABVIEW, labview_ip_addr)
+            udp_rx_pipe.send(instruction_1)
+            done = udp_rx_pipe.recv()
+            if done != ProcessMessage.ACK_CONNECT_LABVIEW:
+                logging.error(f"Expected ACK_CONNECT_LABVIEW from udp server, received {done}")
+            instruction_2 = (ProcessMessage.SEND_CONNECT_LABVIEW, labview_ip_addr)
+            harness_pipe.send(instruction_2)
             done = harness_pipe.recv()
             if done != ProcessMessage.ACK_CONNECT_LABVIEW:
-                logging.error(f"Expected ACK_CONNECT_LABVIEW, received {done}")
+                logging.error(f"Expected ACK_CONNECT_LABVIEW from harness, received {done}")
         return redirect(url_for('index'))
 
 

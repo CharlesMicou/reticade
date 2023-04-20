@@ -8,14 +8,14 @@ from reticade.interprocess_messages import ProcessMessage
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
 
-def run_flask(harness_pipe, imaging_pipe, shared_dict):
-    app = reticade.ui_server.create_flask_app(harness_pipe, imaging_pipe, shared_dict)
+def run_flask(harness_pipe, imaging_pipe, udp_rx_pipe, shared_dict):
+    app = reticade.ui_server.create_flask_app(harness_pipe, imaging_pipe, udp_rx_pipe, shared_dict)
     app.run(debug=False)
 
 def run_harness(flask_pipe, shared_dict):
     shared_dict['harness_busy'] = True
     from reticade.interactive import Harness
-    harness = Harness()
+    harness = Harness(enable_labview_debug=True)
     while True:
         shared_dict['harness_busy'] = False
         instruction = flask_pipe.recv()
@@ -49,6 +49,18 @@ def run_harness(flask_pipe, shared_dict):
             logging.error(f"Harness received unexpected instruction: {instruction}")
             
 
+def run_udp_receiver(flask_pipe, shared_dict):
+    from reticade.udp_controller_link import UdpMemshareReceiver
+    receiver = UdpMemshareReceiver()
+    while True:
+        instruction = flask_pipe.recv()
+        instruction_id = instruction[0]
+        if instruction_id == ProcessMessage.SEND_CONNECT_LABVIEW:
+            logging.info("Labview receiver configured")
+            flask_pipe.send((ProcessMessage.ACK_CONNECT_LABVIEW))
+            receiver.bind_and_run_forever()
+        else:
+            logging.error(f"UDP RX received unexpected instruction: {instruction}")
 
 
 def run_imaging(flask_pipe, shared_dict):
@@ -95,13 +107,17 @@ if __name__ == '__main__':
 
         flask_to_harness, harness_from_flask = Pipe()
         flask_to_imaging, imaging_from_flask = Pipe()
+        flask_to_udp, udp_from_flask = Pipe()
 
-        flask_process = Process(target=run_flask, args=(flask_to_harness, flask_to_imaging, shared_dict))
+        udp_rx_process = Process(target=run_udp_receiver, args=(udp_from_flask, shared_dict))
+        flask_process = Process(target=run_flask, args=(flask_to_harness, flask_to_imaging, flask_to_udp, shared_dict))
         harness_process = Process(target=run_harness, args=(harness_from_flask, shared_dict))
         imaging_process = Process(target=run_imaging, args=(imaging_from_flask, shared_dict))
+        udp_rx_process.start()
         harness_process.start()
         imaging_process.start()
         flask_process.start()
         harness_process.join()
         imaging_process.join()
         flask_process.join()
+        udp_rx_process.join()

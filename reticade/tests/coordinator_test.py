@@ -1,7 +1,7 @@
 import pytest
 import time
 import struct
-from reticade.controller_link import ControllerLink
+from reticade.tests.tools.tcp_controller_link import ControllerLink
 from reticade.coordinator import Coordinator
 from reticade.decoder_harness import DecoderPipeline
 from reticade.decoding.dummy_decoder import MeanValueTaker
