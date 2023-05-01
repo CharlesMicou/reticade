@@ -128,8 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Don't commit test configurations
+# Don't commit test configurations or decoders
 testing/
+decoders/
 
 # Automated interactive environment
 scratch.py

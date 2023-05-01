@@ -1,11 +1,13 @@
 import numpy as np
-import win32com.client
 from multiprocessing import shared_memory
 import logging
 import os
 import ctypes
 import reticade.imaging_link
 import time
+import platform
+if platform.system() == 'Windows':
+    import win32com.client
 
 logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',
                     datefmt='%H:%M:%S', level=logging.INFO)
@@ -231,5 +233,41 @@ class StandaloneImager:
         self.prairie_link.Disconnect()
         self.memory_block.close()
         self.memory_block.unlink()
+        self.output_sharedmem.close()
+        self.output_sharedmem.unlink()
+
+
+"""
+This is a fake standalone imager useful for testing on computers
+that do not have PrairieView installed/available for communication.
+"""
+class TestImager:
+    def __init__(self, image_size=(512, 512), max_frames_to_buffer=30):
+        output_size = 8 * image_size[0] * image_size[1]
+        self.output_sharedmem = shared_memory.SharedMemory(name=reticade.imaging_link.IMAGING_LINK_MEMSHARE_NAME,
+                                                           create=True, size=output_size)
+        self.output_array = np.ndarray(
+            (image_size[0], image_size[1]), dtype=np.float64, buffer=self.output_sharedmem.buf)
+        self.output_array.fill(0.0)
+        time.sleep(3) # Simulate the lag on startup of PrairieView
+
+    def run_timeseries(self, duration_s):
+        self._run_with_dummy_data(duration_s)
+
+    def run_liveview(self, duration_s):
+        self._run_with_dummy_data(duration_s)
+
+    def _run_with_dummy_data(self, duration_s):
+        start_time = time.perf_counter()
+        refresh_interval_s = 0.033
+        while time.perf_counter() < start_time + duration_s:
+            self.output_array.fill(0.0)
+            noise = np.random.normal(loc=2000, scale=1000, size=self.output_array.shape)
+            noise = np.clip(noise, 0, 4000)
+            self.output_array += noise
+            self.output_array[100:200, 200:300] += 2000
+            time.sleep(refresh_interval_s)
+
+    def close(self):
         self.output_sharedmem.close()
         self.output_sharedmem.unlink()

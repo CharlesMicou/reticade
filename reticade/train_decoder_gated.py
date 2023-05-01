@@ -73,6 +73,8 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     interim_harness = decoder_harness.DecoderPipeline(
         [motion, delta, dog, threshold, second_downsampler, flat])
     post_sig_proc = []
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Processing position file")
+    positions = get_positions(path_in)
     print(f"[{(time.perf_counter() - start_time):.2f}s] Passing images through sigproc pipeline")
     for image in first_stage_out:
         post_sig_proc.append(interim_harness.decode(image))
@@ -82,14 +84,13 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
             np.save(file, post_sig_proc)
         print(f"[bonus]: Saved images to {cache_images}")
 
-    print(f"[{(time.perf_counter() - start_time):.2f}s] Processing position file")
-    positions = get_positions(path_in)
+    print(f"[{(time.perf_counter() - start_time):.2f}s] Exctracting laps")
     training_positions, training_images, test_positions, test_images = behavioural.concat_valid_laps(
         positions, post_sig_proc, MIN_LAP_VALUE, MAX_POS_VALUE, MIN_SAMPLES_PER_LAP, withheld_fraction)
     classes = positions_to_uniform_classes(training_positions)
 
     print(f"[{(time.perf_counter() - start_time):.2f}s] Training SVM classifier")
-    decoder = svm_decoder.SvmClassifier.from_training_data(
+    decoder = svm_decoder.GatedSvmClassifier.from_training_data(
         training_images, classes, c=0.2)
 
     if test_positions.size > 0:
@@ -102,12 +103,8 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     else:
         print(f"Sanity check: score on training data {decoder.score(training_images, classes, 0):.3f}")
 
-    print(f"[{(time.perf_counter() - start_time):.2f}s] Extracting behavioural data")
-    #controller = movement_controller.ClassMovementController.from_training_data(
-    #    training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
-
-    # Note(charlie): replace the controller with a stereotyped, fake version here
-    stereotyped_velocities = [25, 38, 40, 30, 20, 15, 4, 30, 40, 25]
+    # Note: 1st velocity is zero
+    stereotyped_velocities = [0, 25, 38, 40, 30, 20, 15, 4, 30, 40, 25]
     controller = movement_controller.ClassMovementController(stereotyped_velocities, 80)
 
     # Note(charlie): Labview running at 50 Hz means we need to divide this by 50

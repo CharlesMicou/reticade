@@ -1,6 +1,13 @@
 import socket
 import struct
 import logging
+from multiprocessing import shared_memory
+import numpy as np
+
+UDP_LINK_MEMSHARE_NAME = 'reticade-udp-memshare'
+UDP_MEMSHARE_ITEMS = 1
+UDP_MEMSHARE_SIZE = 8 * UDP_MEMSHARE_ITEMS # a single float64
+DEFAULT_UDP_RECEIVE_PORT = 7999
 
 class UdpControllerLink:
     """
@@ -21,9 +28,30 @@ class UdpControllerLink:
             # Note(charlie): socket.MSG_DONTWAIT doesn't exist on windows
             self.udp_socket.sendto(payload, self.target)
         except socket.error as err:
-            # Todo(charlie): really need a logger here
             logging.error(f"Network failure. Details:\n{err}")
             assert(False)
 
     def close(self):
         self.udp_socket.close()
+
+class UdpMemshareReceiver:
+    """
+    This is a simple UDP server that receives data and places the latest
+    packet contents into shared memory, where it can be read.
+    For example: if LabView sends the latest position, a decoder can read
+    the latest position from the shared memory.
+    """
+    def __init__(self, port=DEFAULT_UDP_RECEIVE_PORT):
+        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.port = port
+        self.output_sharedmem = shared_memory.SharedMemory(name=UDP_LINK_MEMSHARE_NAME, create=True, size=UDP_MEMSHARE_SIZE)
+        self.output_array = np.ndarray((UDP_MEMSHARE_ITEMS), dtype=np.float64, buffer=self.output_sharedmem.buf)
+        self.output_array.fill(-777.0)
+
+    def bind_and_run_forever(self):
+        self.udp_socket.bind(("127.0.0.1", self.port))
+        self.udp_socket.setblocking(True)
+        while True:
+            data = self.udp_socket.recv(1024)
+            unpacked_data = struct.unpack('>d', data)
+            self.output_array[0] = unpacked_data

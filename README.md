@@ -1,5 +1,14 @@
 # reticade: the REal TIme CAlcium imaging DEcoder
 
+## Quick Start
+
+If reticade is already installed, here are the steps to get the GUI running:
+
+1. Open a command prompt within the root directory of reticade
+2. Run `env\Scripts\activate.bat`
+3. Run `python -m reticade.run_ui`
+4. Navigate to [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
 ## First time setup & requirements
 
 ### Windows

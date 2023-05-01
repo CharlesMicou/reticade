@@ -7,7 +7,7 @@ from reticade.decoding import dummy_decoder
 from reticade.decoding import movement_controller
 from reticade.decoding import svm_decoder
 from reticade.util import behavioural
-from matplotlib.pyplot import imread
+from tifffile import TiffFile
 import numpy as np
 import time
 
@@ -57,8 +57,10 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     interim_harness = decoder_harness.DecoderPipeline([downsampler, low_pass])
     first_stage_out = []
     for image_file in get_image_paths(path_in):
-        image = imread(image_file)
-        first_stage_out.append(interim_harness.decode(image))
+        with TiffFile(image_file) as tif:
+            for page in tif.pages:
+                image = page.asarray()
+                first_stage_out.append(interim_harness.decode(image))
     first_stage_out = np.array(first_stage_out)
     reference_image = first_stage_out.mean(axis=0)
 

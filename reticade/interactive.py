@@ -10,6 +10,7 @@ import numpy as np
 import time
 import platform
 from datetime import datetime
+from multiprocessing import shared_memory
 
 if platform.system() == 'Windows':
     import reticade.win_imaging_link
@@ -25,8 +26,9 @@ valid_imaging_formats = [IMAGE_MODE_MULTITHREAD,
 
 DEFAULT_LINK_IP = "131.111.32.44"
 
+
 class Harness:
-    def __init__(self, tick_interval_s=1/30):
+    def __init__(self, tick_interval_s=1/30, enable_labview_debug=False):
         self.coordinator = reticade.coordinator.Coordinator()
         self.tick_interval_s = tick_interval_s
         self.frame_report_interval_s = 5.0
@@ -38,6 +40,7 @@ class Harness:
             self.is_windows = False
         else:
             logging.error("Couldn't determine operating system.")
+        self.enable_labview_debug = enable_labview_debug
 
     def init_imaging(self, image_mode=IMAGE_MODE_MULTITHREAD):
         if image_mode != IMAGE_MODE_MULTITHREAD and not self.is_windows:
@@ -78,12 +81,19 @@ class Harness:
         udp_connection = reticade.udp_controller_link.UdpControllerLink(
             ip_addr, port)
         self.coordinator.set_controller(udp_connection)
+        if self.enable_labview_debug:
+            self.labview_rx_mem = shared_memory.SharedMemory(
+                name=reticade.udp_controller_link.UDP_LINK_MEMSHARE_NAME, create=False, size=reticade.udp_controller_link.UDP_MEMSHARE_SIZE)
+            self.shared_labview_data = np.ndarray(
+                (reticade.udp_controller_link.UDP_MEMSHARE_ITEMS), dtype=np.float64, buffer=self.labview_rx_mem.buf)
 
     def test_link(self, data):
         for item in data:
             to_send = float(item)
             logging.info(f"Sending test payload: {to_send}")
             self.coordinator.send_debug_message(to_send)
+            if self.enable_labview_debug:
+                logging.info(f"Last received payload: {self.shared_labview_data[0]}")
             time.sleep(0.5)
 
     def load_decoder(self, path_to_decoder):
@@ -191,7 +201,7 @@ class Harness:
             self.imref.set_data(image)
         end = time.perf_counter()
 
-    def show_live_view(self):
+    def show_live_view(self, duration=None):
         image = self.coordinator.get_debug_image()
         if image is None:
             logging.warn("Can't render live image: imaging not configured.")
@@ -204,9 +214,16 @@ class Harness:
         interval_ms = int(self.tick_interval_s * 1000)
         anim = animation.FuncAnimation(
             fig, self._live_animate, range(100), interval=interval_ms)
-        logging.info(
-            f"Live-view active. Refreshing at {interval_ms} ms. Close view window to cancel.")
-        plt.show()
+        logging.info(f"Live-view active. Refreshing at {interval_ms} ms.")
+        if duration:
+            plt.show(block=False)
+            plt.pause(duration)
+            anim.pause()
+            plt.close(plt.gcf())
+            logging.info(
+                f"Disposing plot. If the window is still open, leave it there. It will be reused for future live plots.")
+        else:
+            plt.show()
 
     def close(self):
         self.coordinator.close()

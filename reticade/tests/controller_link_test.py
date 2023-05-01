@@ -1,6 +1,6 @@
 import pytest
 import time
-from reticade.controller_link import ControllerLink
+from reticade.tests.tools.tcp_controller_link import ControllerLink
 from reticade.tests.tools.fake_labview import FakeLabview
 import struct
 
