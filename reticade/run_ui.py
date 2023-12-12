@@ -87,7 +87,7 @@ def run_imaging(flask_pipe, shared_dict):
         elif instruction_id == ProcessMessage.SEND_RUN_BMI:
             duration_s = instruction[0]
             if imaging is None:
-                logging.error("Request to run timeseries when imaging not configured")
+                logging.warn("Request to run timeseries when imaging not configured. This is fine with autopilot.")
             else:
                 duration_s = instruction[1]
                 imaging.run_timeseries(duration_s)

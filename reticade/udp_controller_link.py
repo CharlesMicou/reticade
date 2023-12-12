@@ -7,7 +7,8 @@ import numpy as np
 UDP_LINK_MEMSHARE_NAME = 'reticade-udp-memshare'
 UDP_MEMSHARE_ITEMS = 1
 UDP_MEMSHARE_SIZE = 8 * UDP_MEMSHARE_ITEMS # a single float64
-DEFAULT_UDP_RECEIVE_PORT = 7999
+DEFAULT_UDP_RECEIVE_PORT = 7778
+DEFAULT_RECEIVE_ADDR = "131.111.32.84"
 
 class UdpControllerLink:
     """
@@ -41,17 +42,19 @@ class UdpMemshareReceiver:
     For example: if LabView sends the latest position, a decoder can read
     the latest position from the shared memory.
     """
-    def __init__(self, port=DEFAULT_UDP_RECEIVE_PORT):
+    def __init__(self, addr=DEFAULT_RECEIVE_ADDR, port=DEFAULT_UDP_RECEIVE_PORT):
         self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.port = port
+        self.addr = addr
         self.output_sharedmem = shared_memory.SharedMemory(name=UDP_LINK_MEMSHARE_NAME, create=True, size=UDP_MEMSHARE_SIZE)
         self.output_array = np.ndarray((UDP_MEMSHARE_ITEMS), dtype=np.float64, buffer=self.output_sharedmem.buf)
         self.output_array.fill(-777.0)
 
     def bind_and_run_forever(self):
-        self.udp_socket.bind(("127.0.0.1", self.port))
+        logging.info(f"Setting up UDP receiver on {self.addr}:{self.port}")
+        self.udp_socket.bind((self.addr, self.port))
         self.udp_socket.setblocking(True)
         while True:
             data = self.udp_socket.recv(1024)
-            unpacked_data = struct.unpack('>d', data)
-            self.output_array[0] = unpacked_data
+            hacky_extraction = float(str(data).split("b'")[1].split(" ")[0])
+            self.output_array[0] = hacky_extraction

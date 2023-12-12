@@ -70,7 +70,6 @@ class Harness:
         else:
             logging.info(
                 "Showing current image. Exit viewing window to regain control.")
-            # Todo(charlie): make sure normalisation is sane
             logging.info(
                 f"Intensities: min: {np.min(image)}, mean: {np.mean(image)}, max: {np.max(image)}")
             plt.imshow(image)

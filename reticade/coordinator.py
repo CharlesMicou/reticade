@@ -11,11 +11,12 @@ class Coordinator:
     # Note(charlie): Even if we can't complete a full end-to-end pass,
     # we should still tick as far as we can.
     def tick(self):
-        if self.imaging == None:
-            return
-        frame = self.imaging.get_current_frame()
+        frame = None
+        if self.imaging != None:
+            frame = self.imaging.get_current_frame()
         if self.decoder == None:
             return
+        # Sometimes it's fine to have no frame (e.g. autopilot)
         decoded_command = self.decoder.decode(frame)
         if self.controller == None:
             return
