@@ -4,6 +4,7 @@ from reticade.decoding import dummy_decoder
 from reticade.decoding import movement_controller
 from reticade.decoding import svm_decoder
 from reticade.decoding import motion_correction
+from reticade.decoding import autopilot_decoder
 import numpy as np
 import logging
 import time
@@ -25,6 +26,7 @@ known_pipeline_stages = {
     'SvmClassifier': svm_decoder.SvmClassifier,
     'GatedSvmClassifier': svm_decoder.GatedSvmClassifier,
     'FlowMotionCorrection': motion_correction.FlowMotionCorrection,
+    'Autopilot': autopilot_decoder.AutopilotDecoder,
 }
 
 class DecoderPipeline:
