@@ -1,6 +1,5 @@
 % I've hacked this together from the existing Krupic scripts to mass-
-% extract position data. It's hideous and I take no responsibility for
-% the nonsense that follows.
+% extract position data.
 
 
 clearvars;
