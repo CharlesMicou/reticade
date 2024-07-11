@@ -131,6 +131,7 @@ dmypy.json
 # Don't commit test configurations or decoders
 testing/
 decoders/
+replay_decoders/
 
 # Automated interactive environment
 scratch.py

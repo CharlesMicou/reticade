@@ -23,6 +23,8 @@ known_pipeline_stages = {
     'Dummy': dummy_decoder.MeanValueTaker,
     'FakeController': movement_controller.FakeController,
     'ClassMovementController': movement_controller.ClassMovementController,
+    'ConstantVelocityController': movement_controller.ConstantVelocityController,
+    'ReplayMovementController': movement_controller.ReplayMovementController,
     'SvmClassifier': svm_decoder.SvmClassifier,
     'GatedSvmClassifier': svm_decoder.GatedSvmClassifier,
     'FlowMotionCorrection': motion_correction.FlowMotionCorrection,

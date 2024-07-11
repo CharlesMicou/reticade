@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import reticade.util.serialization as serial
 
 # If more than 2s apart, assume we've stopped and started decoder
 MAX_SAMPLE_DISTANCE_SECONDS = 2.0
@@ -133,3 +134,56 @@ class FakeController:
             'slow_velocity': self.slow_velocity,
             'fast_velocity': self.fast_velocity,
             'wait_time_s': self.wait_time_s}}
+
+"""
+This controller supplies a constant velocity at all times.
+Useful for testing, and as a control.
+"""
+class ConstantVelocityController:
+    def __init__(self, velocity):
+        self.velocity = velocity
+
+    def process(self, raw_input):
+        return self.velocity
+
+    def from_json(json_params):
+        velocity = float(json_params['velocity'])
+        return ConstantVelocityController(velocity)
+
+    def to_json(self):
+        return {'name': 'ConstantVelocityController', 'params': {
+            'velocity': self.velocity}}
+
+"""
+This controller replays a previous performance.
+"""
+class ReplayMovementController:
+    def __init__(self, sample_rate, velocity_history):
+        self.velocity_history = velocity_history
+        self.sample_rate = sample_rate
+        self.last_time_polled = 0.0
+        self.session_start_time = 0.0
+
+
+    def process(self, raw_input):
+        # Special case: no historical data
+        current_time = time.perf_counter()
+        delta_t = current_time - self.last_time_polled
+        if delta_t > MAX_SAMPLE_DISTANCE_SECONDS:
+            self.session_start_time = current_time
+        
+        time_into_session = current_time - self.session_start_time
+        # Wrap around if the historical session is shorter than the current session
+        velocity_index = int(self.sample_rate * time_into_session) % len(self.velocity_history)
+
+        return self.velocity_history[velocity_index]
+
+    def from_json(json_params):
+        velocity_history = serial.obj_from_picklestring(json_params['velocity_history'])
+        sample_rate = float(json_params['sample_rate'])
+        return ReplayMovementController(sample_rate, velocity_history)
+
+    def to_json(self):
+        return {'name': 'ReplayMovementController', 'params': {
+            'sample_rate': self.sample_rate,
+            'velocity_history': serial.obj_to_picklestring(self.velocity_history)}}

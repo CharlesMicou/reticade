@@ -9,7 +9,6 @@ Instead of decoding from neural activity, we communicate with the
 virtual environment to get the output of a hypothetical 'perfect'
 decoder that can always infer animal position.
 """
-
 class AutopilotDecoder:
     def __init__(self, bin_size, num_bins, init_mem=True):
         self.bin_size = bin_size
