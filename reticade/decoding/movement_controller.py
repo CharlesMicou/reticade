@@ -173,6 +173,7 @@ class ReplayMovementController:
             self.session_start_time = current_time
         
         time_into_session = current_time - self.session_start_time
+        self.last_time_polled = current_time
         # Wrap around if the historical session is shorter than the current session
         velocity_index = int(self.sample_rate * time_into_session) % len(self.velocity_history)
 
