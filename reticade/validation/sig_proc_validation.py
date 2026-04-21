@@ -104,6 +104,6 @@ def update(idx):
 ani = animation.FuncAnimation(fig, update, range(NUM_FRAMES_TO_VIEW), interval=33)
 
 if save_file:
-    ani.save('XM036-2x-res-pmt-680-041.mp4', fps=30)
+    ani.save('sig_proc_video.mp4', fps=30)
 else:
     plt.show()

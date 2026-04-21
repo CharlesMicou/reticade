@@ -106,7 +106,7 @@ def train_decoder(path_in, withheld_fraction=0.0, cache_images=None):
     #controller = movement_controller.ClassMovementController.from_training_data(
     #    training_positions, classes, NUM_CLASSES, SAMPLE_RATE_HZ)
 
-    # Note(charlie): replace the controller with a stereotyped, fake version here
+    # Note(charlie): replace the controller with the stereotyped version here
     stereotyped_velocities = [25, 38, 40, 30, 20, 15, 4, 30, 40, 25]
     controller = movement_controller.ClassMovementController(stereotyped_velocities, 80)
 
